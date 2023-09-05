@@ -44,6 +44,9 @@ contract NFTBatchTransfer {
     ) external {
         uint256 length = nftTransfers.length;
 
+        // Generate the signature for the `transferFrom` function of the ERC721 protocol.
+        bytes4 signature = bytes4(keccak256("transferFrom(address,address,uint256)"));
+
         // Capturing the initial gas at the start for later comparisons. Useful to preemptively identify
         // transactions that might run out of gas and revert them proactively.
         uint256 gasLeftStart = gasleft();
@@ -52,9 +55,6 @@ contract NFTBatchTransfer {
         for(uint i = 0; i < length;) {
             address contractAddress = nftTransfers[i].contractAddress;
             uint256 tokenId = nftTransfers[i].tokenId;
-
-            // Generate the signature for the `transferFrom` function of the ERC721 protocol.
-            bytes4 signature = bytes4(keccak256("transferFrom(address,address,uint256)"));
 
             // Dynamically call the `transferFrom` function on the target ERC721 contract.
             (bool success, ) = address(uint160(contractAddress))
