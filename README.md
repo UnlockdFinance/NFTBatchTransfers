@@ -137,10 +137,35 @@ $ forge snapshot
 
 # 🚀 Deployments
 
-CryptoPunksMarket Address: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"
+### These addresses are added on both deploy scripts: 
 
-### Deploy
+CryptoPunksMarket Address: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"
+Unlockd Mock CryptoPunksMarket Goerli Address: "0x3aFE908110e5c5275Bc96a9e42DB1B322590bDa4"
+
+## Deploy
+
+### Goerli
 
 ```bash
-$ forge script script/NFTBatchTransfer.s.sol:NFTBatchTransferScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+$ forge script script/DeployGoerliNFTBatchTransfer.s.sol:DeployGoerliNFTBatchTransfer --rpc-url <your_rpc_url> --private-key <your_private_key> --broadcast -vvvv
+```
+
+### Mainnet
+
+```bash
+$ forge script script/DeployGoerliNFTBatchTransfer.s.sol:DeployGoerliNFTBatchTransfer --rpc-url <your_rpc_url> --private-key <your_private_key> --broadcast -vvvv
+```
+
+## Verify
+
+### Goerli
+
+```bash
+forge verify-contract --num-of-optimizations 200 <deployed_address> src/NFTBatchTransferFlattened.sol:NFTBatchTransfer --etherscan-api-key <etherscan_api_key> --chain 5
+```
+
+### Mainnet
+
+```bash
+forge verify-contract --num-of-optimizations 200 <deployed_address> src/NFTBatchTransferFlattened.sol:NFTBatchTransfer --etherscan-api-key <etherscan_api_key> --chain 1
 ```
