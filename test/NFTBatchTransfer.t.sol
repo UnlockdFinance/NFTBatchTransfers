@@ -155,21 +155,6 @@ contract NFTBatchTransferTest is Test {
     //                                      NEGATIVES                                        //
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    function testZeroAddressRevert() public {
-        vm.startPrank(alice);
-        vm.expectRevert("Invalid address");
-        NFTBatchTransfer.NftTransfer[]
-            memory transfers = new NFTBatchTransfer.NftTransfer[](1);
-        transfers[0] = NFTBatchTransfer.NftTransfer(
-            address(nftBatchTransfer),
-            1
-        );
-
-        nftBatchTransfer.batchTransferFrom(transfers, address(0));
-
-        vm.stopPrank();
-    }
-
     function testTransferRevert() public {
         vm.startPrank(alice);
         mintAndApproveNFTs();

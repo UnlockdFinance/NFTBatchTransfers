@@ -44,7 +44,7 @@ contract NFTBatchTransfer {
         uint256 gasLeftStart = gasleft();
 
         // Iterate through each NFT in the array to facilitate the transfer.
-        for (uint i = 0; i < length; ) {
+        for (uint i = 0; i < length;) {
             address contractAddress = nftTransfers[i].contractAddress;
             uint256 tokenId = nftTransfers[i].tokenId;
 
@@ -84,7 +84,7 @@ contract NFTBatchTransfer {
         bool success;
 
         // Process batch transfers, differentiate between CryptoPunks and standard ERC721 tokens.
-        for (uint i = 0; i < length; i++) {
+        for (uint i = 0; i < length;) {
             address contractAddr = nftTransfers[i].contractAddress;
             uint256 tokenId = nftTransfers[i].tokenId;
 
@@ -114,10 +114,15 @@ contract NFTBatchTransfer {
                 );
             }
 
+            unchecked {
+                i++;
+            }
+
             // Check the transfer status and gas consumption.
             if (!success || gasleft() < gasLeftStart / 2) {
                 revert("Transfer failed");
             }
+
         }
     }
 
