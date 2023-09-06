@@ -137,6 +137,8 @@ $ forge snapshot
 
 # 🚀 Deployments
 
+This contract is deployed on Goerli: 0xC55111678fD380102e89F76da5832Be9e3A36A60
+
 ### These addresses are added on both deploy scripts: 
 
 CryptoPunksMarket Address: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"
