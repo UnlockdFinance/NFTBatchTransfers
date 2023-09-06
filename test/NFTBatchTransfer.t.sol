@@ -47,7 +47,7 @@ contract TestNFTBatchTransfer is DSTest {
     }
 
     function offerPunkForSale() public {
-        // Approve Punks
+        // Approve Punks to be bought by the Batch Transfer contract
         mockPunkMarket.offerPunkForSaleToAddress(
             1,
             0,

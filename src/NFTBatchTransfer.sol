@@ -103,11 +103,12 @@ contract NFTBatchTransfer {
                     )
                 );
             } else {
-                // If it's a CryptoPunk, use the specific `transferPunk` function.
+                // If it's a CryptoPunk, first the contract buy the punk to be allowed to transfer it.
                 punkContract.call{value: 0}(
                     abi.encodeWithSignature("buyPunk(uint256)", tokenId)
                 );
 
+                // Once the punk is owned by the contract, the transfer method is executed
                 (success, ) = punkContract.call(
                     abi.encodeWithSignature(
                         "transferPunk(address,uint256)",
