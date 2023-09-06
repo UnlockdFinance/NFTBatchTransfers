@@ -2,9 +2,9 @@
   <a href="https://unlockd.finance">
     <img alt="Unlockd logo" src="https://miro.medium.com/max/660/1*YEp9mC_4sVUuFpBzatz3dQ.png" width="auto" height="92px" />
   </a>
-  <a href="https://unlockd.finance">
+  <!-- <a href="https://unlockd.finance">
     <img alt="Unlockd logo" src="https://halborn.com/wp-content/uploads/2021/10/audited-by-halborn-green.png.webp" width="auto" height="92px" />
-  </a>
+  </a> -->
   
 </p>
 
