@@ -9,9 +9,8 @@ import "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
  * in a single transaction, reducing gas costs and improving efficiency.
  */
 contract NFTBatchTransfer {
-
     // Immutable address for the CryptoPunks contract. This is set at deployment and cannot be altered afterwards.
-    address immutable public punkContract;
+    address public immutable punkContract;
 
     // Struct to encapsulate information about an individual NFT transfer.
     // It holds the address of the ERC721 contract and the specific token ID to be transferred.
@@ -49,16 +48,22 @@ contract NFTBatchTransfer {
         uint256 gasLeftStart = gasleft();
 
         // Iterate through each NFT in the array to facilitate the transfer.
-        for(uint i = 0; i < length;) {
+        for (uint i = 0; i < length; ) {
             address contractAddress = nftTransfers[i].contractAddress;
             uint256 tokenId = nftTransfers[i].tokenId;
 
             // Dynamically call the `transferFrom` function on the target ERC721 contract.
-            (bool success, ) = contractAddress
-                                .call(abi.encodeWithSignature("transferFrom(address,address,uint256)", msg.sender, to, tokenId));
+            (bool success, ) = contractAddress.call(
+                abi.encodeWithSignature(
+                    "transferFrom(address,address,uint256)",
+                    msg.sender,
+                    to,
+                    tokenId
+                )
+            );
 
             // Check the transfer status and gas consumption.
-            if(!success || gasleft() < gasLeftStart/2) {
+            if (!success || gasleft() < gasLeftStart / 2) {
                 revert("Transfer failed");
             }
 
@@ -75,7 +80,7 @@ contract NFTBatchTransfer {
      * @param to The destination address for the NFTs.
      */
     function batchPunkTransferFrom(
-        NftTransfer[] calldata nftTransfers, 
+        NftTransfer[] calldata nftTransfers,
         address to
     ) external nonZeroAddress(to) {
         uint256 length = nftTransfers.length;
@@ -83,28 +88,42 @@ contract NFTBatchTransfer {
         bool success;
 
         // Process batch transfers, differentiate between CryptoPunks and standard ERC721 tokens.
-        for(uint i = 0; i < length; i++) {
+        for (uint i = 0; i < length; i++) {
             address contractAddr = nftTransfers[i].contractAddress;
             uint256 tokenId = nftTransfers[i].tokenId;
 
-            if(contractAddr != punkContract) {
+            if (contractAddr != punkContract) {
                 // If it's not a CryptoPunk, use the standard ERC721 `transferFrom` function.
-                (success, ) = contractAddr
-                                .call(abi.encodeWithSignature("transferFrom(address,address,uint256)", msg.sender, to, tokenId));
-            }
-            else {
+                (success, ) = contractAddr.call(
+                    abi.encodeWithSignature(
+                        "transferFrom(address,address,uint256)",
+                        msg.sender,
+                        to,
+                        tokenId
+                    )
+                );
+            } else {
                 // If it's a CryptoPunk, use the specific `transferPunk` function.
-                (success, ) = punkContract
-                                .call(abi.encodeWithSignature("transferPunk(address,uint256)", to, tokenId));
+                punkContract.call{value: 0}(
+                    abi.encodeWithSignature("buyPunk(uint256)", tokenId)
+                );
+
+                (success, ) = punkContract.call(
+                    abi.encodeWithSignature(
+                        "transferPunk(address,uint256)",
+                        to,
+                        tokenId
+                    )
+                );
             }
 
             // Check the transfer status and gas consumption.
-            if(!success || gasleft() < gasLeftStart/2) {
+            if (!success || gasleft() < gasLeftStart / 2) {
                 revert("Transfer failed");
-            } 
-        }  
+            }
+        }
     }
-    
+
     // Explicitly reject any Ether sent to the contract
     fallback() external {
         revert("Contract does not accept Ether");
