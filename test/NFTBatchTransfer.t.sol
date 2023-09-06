@@ -36,6 +36,8 @@ contract TestNFTBatchTransfer is DSTest {
         // Punk
         mockPunkMarket.getPunk(1);
         mockPunkMarket.transferPunk(address(this), 1);
+        mockPunkMarket.getPunk(2);
+        mockPunkMarket.transferPunk(address(this), 2);
     }
 
     function approveNFTs() public {
@@ -46,10 +48,15 @@ contract TestNFTBatchTransfer is DSTest {
         mockERC721_2.approve(address(nftBatchTransfer), 2);
     }
 
-    function offerPunkForSale() public {
+    function offerPunksForSale() public {
         // Approve Punks to be bought by the Batch Transfer contract
         mockPunkMarket.offerPunkForSaleToAddress(
             1,
+            0,
+            address(nftBatchTransfer)
+        );
+        mockPunkMarket.offerPunkForSaleToAddress(
+            2,
             0,
             address(nftBatchTransfer)
         );
@@ -94,7 +101,7 @@ contract TestNFTBatchTransfer is DSTest {
     function testSinglePunkTransfer() public {
         mintNFTs();
         approveNFTs();
-        offerPunkForSale();
+        offerPunksForSale();
 
         NFTBatchTransfer.NftTransfer[]
             memory transfers = new NFTBatchTransfer.NftTransfer[](1);
@@ -109,6 +116,7 @@ contract TestNFTBatchTransfer is DSTest {
     function testBatchPunkTransfer() public {
         mintNFTs();
         approveNFTs();
+        offerPunksForSale();
 
         NFTBatchTransfer.NftTransfer[]
             memory transfers = new NFTBatchTransfer.NftTransfer[](2);
@@ -125,6 +133,7 @@ contract TestNFTBatchTransfer is DSTest {
     function testMixedBatchTransfer() public {
         mintNFTs();
         approveNFTs();
+        offerPunksForSale();
 
         NFTBatchTransfer.NftTransfer[]
             memory transfers = new NFTBatchTransfer.NftTransfer[](3);
