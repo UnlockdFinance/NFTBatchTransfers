@@ -82,11 +82,11 @@ The NFTBatchTransfer contract is designed to facilitate the batch transfer of NF
 
 ## Important Note on Address ZERO:
 
-For optimization and simplicity purposes, the batchTransferFrom and batchPunkTransferFrom functions in the NFTBatchTransfer contract do not internally validate the supplied addresses for zero address (0x0000000000000000000000000000000000000000).
+    For optimization and simplicity purposes, the batchTransferFrom and batchPunkTransferFrom functions in the NFTBatchTransfer contract do not internally validate the supplied addresses for zero address (0x0000000000000000000000000000000000000000).
 
-This design choice was made to keep the contract functions lean and efficient. It is the responsibility of the caller to ensure that they do not provide the zero address when invoking these functions. Providing the zero address may result in the loss of NFTs, as they would be sent to an unrecoverable address.
+    This design choice was made to keep the contract functions lean and efficient. It is the responsibility of the caller to ensure that they do not provide the zero address when invoking these functions. Providing the zero address may result in the loss of NFTs, as they would be sent to an unrecoverable address.
 
-Always double-check and validate addresses before calling the functions to prevent any unintended transfers.
+    Always double-check and validate addresses before calling the functions to prevent any unintended transfers.
 
 
 # 🎬 Setup
