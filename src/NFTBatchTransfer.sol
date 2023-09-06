@@ -108,7 +108,7 @@ contract NFTBatchTransfer {
                 );
             } else {
                 // If it's a CryptoPunk, first the contract buy the punk to be allowed to transfer it.
-                punkContract.call{value: 0}(
+                (success, ) = punkContract.call{value: 0}(
                     abi.encodeWithSignature("buyPunk(uint256)", tokenId)
                 );
 
@@ -130,8 +130,8 @@ contract NFTBatchTransfer {
     }
 
     // Explicitly reject any Ether sent to the contract
-    fallback() external {
-        revert("Contract does not accept Ether");
+    fallback() external payable {
+        revert("Fallback not allowed");
     }
 
     // Explicitly reject any Ether transfered to the contract

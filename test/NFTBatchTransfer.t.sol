@@ -6,6 +6,11 @@ import "../src/NFTBatchTransfer.sol";
 import "./MockERC721.sol";
 import "./MockPunkMarket.sol";
 
+// added to test fallback!
+interface NonExistentFunction {
+    function nonExistent() external payable;
+}
+
 contract NFTBatchTransferTest is Test {
     NFTBatchTransfer nftBatchTransfer;
 
@@ -138,6 +143,14 @@ contract NFTBatchTransferTest is Test {
         vm.stopPrank();
     }
 
+    function testSetPunkContract() public {
+        address expectedPunkContract = address(punkMarket);
+
+        nftBatchTransfer = new NFTBatchTransfer(expectedPunkContract);
+
+        assertEq(address(nftBatchTransfer.punkContract()), expectedPunkContract);
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     //                                      NEGATIVES                                        //
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -173,6 +186,17 @@ contract NFTBatchTransferTest is Test {
         assertEq(mfers.ownerOf(1), alice);
 
         vm.stopPrank();
+    }
+
+    function testFallbackFunction() public {
+        vm.expectRevert("Fallback not allowed");
+        NonExistentFunction nef = NonExistentFunction(address(nftBatchTransfer));
+        nef.nonExistent{value: 1 ether}();  // This will trigger the fallback function
+    }
+
+    function testReceiveRevert() public {
+        vm.expectRevert("Contract does not accept Ether");
+        payable(address(nftBatchTransfer)).transfer(1 ether);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
