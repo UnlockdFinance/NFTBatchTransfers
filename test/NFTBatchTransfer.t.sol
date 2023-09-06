@@ -1,130 +1,188 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import "ds-test/test.sol";
-import "../src/NFTBatchTransfer.sol";  
+import "forge-std/Test.sol";  
+import "../src/NFTBatchTransfer.sol";
 import "./MockERC721.sol";
 import "./MockPunkMarket.sol";
 
-contract TestNFTBatchTransfer is DSTest {
+contract NFTBatchTransferTest is Test {
 
-    NFTBatchTransfer public nftBatchTransfer;
+    NFTBatchTransfer nftBatchTransfer;
+
+    MockERC721 mfers;
+    MockERC721 nakamigos;
     
-    MockERC721 public mockERC721_1;
-    MockERC721 public mockERC721_2;
-    
-    MockPunkMarket public mockPunkMarket;
+    MockPunkMarket punkMarket;
+
+    address internal deployer = address(0x123);
+    address internal alice = address(0x456);
+    address internal bob = address(0x789);
 
     function setUp() public {
-        mockERC721_1 = new MockERC721("Mock Token 1", "MT1");
-        mockERC721_2 = new MockERC721("Mock Token 2", "MT2");
-        
-        mockPunkMarket = new MockPunkMarket();
-        mockPunkMarket.allInitialOwnersAssigned();
-        
-        nftBatchTransfer = new NFTBatchTransfer(address(mockPunkMarket));
+        vm.startPrank(deployer);
+        mfers = new MockERC721("MFERS", "MFERS");
+        nakamigos = new MockERC721("NAKAMIGOS", "NAKAMIGOS");
+
+        punkMarket = new MockPunkMarket();
+        punkMarket.allInitialOwnersAssigned();
+
+        nftBatchTransfer = new NFTBatchTransfer(address(punkMarket));
+        vm.stopPrank(); 
     }
 
-    function mintNFTs() public {
-        // User 1
-        mockERC721_1.mint(address(this), 1); 
-        mockERC721_1.mint(address(this), 2);
-
-        // User 2
-        mockERC721_2.mint(address(this), 1);
-        mockERC721_2.mint(address(this), 2);
-
-        // Punk
-        mockPunkMarket.getPunk(1);
-        mockPunkMarket.transferPunk(address(this), 1);
-    }
-
-    function approveNFTs() public {
-        // Approve ERC721 tokens
-        mockERC721_1.approve(address(nftBatchTransfer), 1);
-        mockERC721_1.approve(address(nftBatchTransfer), 2);  
-        mockERC721_2.approve(address(nftBatchTransfer), 1);
-        mockERC721_2.approve(address(nftBatchTransfer), 2);
-    }
-
-    function checkOwner(address expected, uint256 tokenId) public {
-        assertEq(mockERC721_1.ownerOf(tokenId), expected);
-    }
+    /////////////////////////////////////////////////////////////////////////////////////////// 
+    //                                      POSITIVES                                        // 
+    ///////////////////////////////////////////////////////////////////////////////////////////
 
     function testSingleTransfer() public {
-        mintNFTs();
-        approveNFTs();
-
-        NFTBatchTransfer.NftTransfer[] memory transfers = 
-        new NFTBatchTransfer.NftTransfer[](1);
-
-        transfers[0] = NFTBatchTransfer.NftTransfer(
-            address(mockERC721_1), 1);
-
-        address receiver = address(0x123); 
-
-        nftBatchTransfer.batchTransferFrom(transfers, receiver);
+        vm.startPrank(alice);
+        mintAndApproveNFTs();
         
-        checkOwner(receiver, 1);
+        NFTBatchTransfer.NftTransfer[] memory transfers = new NFTBatchTransfer.NftTransfer[](1);
+        transfers[0] = NFTBatchTransfer.NftTransfer(address(mfers), 1);
+        nftBatchTransfer.batchTransferFrom(transfers, bob);
+
+        assertEq(mfers.ownerOf(1), bob);
+        vm.stopPrank();
     }
 
-    function testBatchTransfer() public {
-        mintNFTs();
-        approveNFTs();
-    
+    function testBatchTransferFromSameCollection() public {
+        vm.startPrank(alice);
+        mintAndApproveNFTs();
+
         NFTBatchTransfer.NftTransfer[] memory transfers = new NFTBatchTransfer.NftTransfer[](2);
-        transfers[0] = NFTBatchTransfer.NftTransfer(address(mockERC721_1), 1);
-        transfers[1] = NFTBatchTransfer.NftTransfer(address(mockERC721_1), 2);
-    
-        address receiver = address(0x124);
-        nftBatchTransfer.batchTransferFrom(transfers, receiver);
+        transfers[0] = NFTBatchTransfer.NftTransfer(address(mfers), 1);
+        transfers[1] = NFTBatchTransfer.NftTransfer(address(mfers), 2);
         
-        checkOwner(receiver, 1);
-        checkOwner(receiver, 2);
+        nftBatchTransfer.batchTransferFrom(transfers, bob);
+
+        assertEq(mfers.ownerOf(1), bob);
+        assertEq(mfers.ownerOf(2), bob);
+        vm.stopPrank();
     }
-    
+
+    function testBatchTransferFromMultipleCollections() public {
+        vm.startPrank(alice);
+        mintAndApproveNFTs();
+
+        NFTBatchTransfer.NftTransfer[] memory transfers = new NFTBatchTransfer.NftTransfer[](4);
+        transfers[0] = NFTBatchTransfer.NftTransfer(address(mfers), 1); 
+        transfers[1] = NFTBatchTransfer.NftTransfer(address(nakamigos), 1);
+        transfers[2] = NFTBatchTransfer.NftTransfer(address(mfers), 2); 
+        transfers[3] = NFTBatchTransfer.NftTransfer(address(nakamigos), 2);
+
+        nftBatchTransfer.batchTransferFrom(transfers, bob);
+
+        assertEq(mfers.ownerOf(1), bob);
+        assertEq(nakamigos.ownerOf(1), bob);
+        assertEq(mfers.ownerOf(2), bob);
+        assertEq(nakamigos.ownerOf(2), bob);
+
+        vm.stopPrank();
+    }
+
     function testSinglePunkTransfer() public {
-        mintNFTs();
-        approveNFTs();
+        vm.startPrank(alice);
+        mintAndApproveNFTs();
+        
+        NFTBatchTransfer.NftTransfer[] memory transfers = new NFTBatchTransfer.NftTransfer[](1);
+        transfers[0] = NFTBatchTransfer.NftTransfer(address(punkMarket), 1);
+        nftBatchTransfer.batchPunkTransferFrom(transfers, bob);
+
+        assertEq(punkMarket.punkIndexToAddress(1), bob);
+        vm.stopPrank();
+    }
+
+    function testBatchPunkTransferFromSameCollection() public {
+        vm.startPrank(alice);
+        mintAndApproveNFTs();
+
+        NFTBatchTransfer.NftTransfer[] memory transfers = new NFTBatchTransfer.NftTransfer[](2);
+        transfers[0] = NFTBatchTransfer.NftTransfer(address(punkMarket), 1);
+        transfers[1] = NFTBatchTransfer.NftTransfer(address(punkMarket), 2);
+        
+        nftBatchTransfer.batchPunkTransferFrom(transfers, bob);
+
+        assertEq(punkMarket.punkIndexToAddress(1), bob);
+        assertEq(punkMarket.punkIndexToAddress(2), bob);
+        vm.stopPrank();
+    }
+
+    function testBatchPunkTransferFromMultipleCollections() public {
+        vm.startPrank(alice);
+        mintAndApproveNFTs();
+
+        NFTBatchTransfer.NftTransfer[] memory transfers = new NFTBatchTransfer.NftTransfer[](6);
+        transfers[0] = NFTBatchTransfer.NftTransfer(address(mfers), 1); 
+        transfers[1] = NFTBatchTransfer.NftTransfer(address(nakamigos), 1);
+        transfers[2] = NFTBatchTransfer.NftTransfer(address(punkMarket), 1); 
+        transfers[3] = NFTBatchTransfer.NftTransfer(address(mfers), 2);
+        transfers[4] = NFTBatchTransfer.NftTransfer(address(nakamigos), 2); 
+        transfers[5] = NFTBatchTransfer.NftTransfer(address(punkMarket), 2);
+
+        nftBatchTransfer.batchPunkTransferFrom(transfers, bob);
+
+        assertEq(mfers.ownerOf(1), bob);
+        assertEq(nakamigos.ownerOf(1), bob);
+        assertEq(mfers.ownerOf(2), bob);
+        assertEq(nakamigos.ownerOf(2), bob);
+        assertEq(punkMarket.punkIndexToAddress(1), bob);
+        assertEq(punkMarket.punkIndexToAddress(2), bob);
+
+        vm.stopPrank();
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////// 
+    //                                      NEGATIVES                                        // 
+    /////////////////////////////////////////////////////////////////////////////////////////// 
+
+    function testZeroAddressRevert() public {
+        vm.startPrank(alice);
+        vm.expectRevert("Invalid address");
+        NFTBatchTransfer.NftTransfer[] memory transfers = new NFTBatchTransfer.NftTransfer[](1);
+        transfers[0] = NFTBatchTransfer.NftTransfer(address(nftBatchTransfer), 1);
+
+        nftBatchTransfer.batchTransferFrom(transfers, address(0));
+
+        vm.stopPrank();
+    }
+
+    function testTransferRevert() public {
+
+        vm.startPrank(alice);
+        mintAndApproveNFTs();
+        
+        mfers.approve(address(0), 1); // revoke approval
     
         NFTBatchTransfer.NftTransfer[] memory transfers = new NFTBatchTransfer.NftTransfer[](1);
-        transfers[0] = NFTBatchTransfer.NftTransfer(address(mockPunkMarket), 1);
+        transfers[0] = NFTBatchTransfer.NftTransfer(address(mfers), 1);
     
-        address receiver = address(0x125);
-        nftBatchTransfer.batchPunkTransferFrom(transfers, receiver);
+        vm.expectRevert("Transfer failed");
+        nftBatchTransfer.batchTransferFrom(transfers, bob);
     
-        assertEq(mockPunkMarket.punkIndexToAddress(1), receiver);
+        assertEq(mfers.ownerOf(1), alice);
+    
+        vm.stopPrank();
     }
-    
-    function testBatchPunkTransfer() public {
-        mintNFTs();
-        approveNFTs();
-    
-        NFTBatchTransfer.NftTransfer[] memory transfers = new NFTBatchTransfer.NftTransfer[](2);
-        transfers[0] = NFTBatchTransfer.NftTransfer(address(mockPunkMarket), 1);
-        transfers[1] = NFTBatchTransfer.NftTransfer(address(mockPunkMarket), 2);
-    
-        address receiver = address(0x126);
-        nftBatchTransfer.batchPunkTransferFrom(transfers, receiver);
-    
-        assertEq(mockPunkMarket.punkIndexToAddress(1), receiver);
-        assertEq(mockPunkMarket.punkIndexToAddress(2), receiver);
-    }
-    
-    function testMixedBatchTransfer() public {
-        mintNFTs();
-        approveNFTs();
-    
-        NFTBatchTransfer.NftTransfer[] memory transfers = new NFTBatchTransfer.NftTransfer[](3);
-        transfers[0] = NFTBatchTransfer.NftTransfer(address(mockERC721_1), 1);
-        transfers[1] = NFTBatchTransfer.NftTransfer(address(mockPunkMarket), 1);
-        transfers[2] = NFTBatchTransfer.NftTransfer(address(mockERC721_2), 2);
-    
-        address receiver = address(0x127);
-        nftBatchTransfer.batchPunkTransferFrom(transfers, receiver);
-    
-        checkOwner(receiver, 1);
-        assertEq(mockPunkMarket.punkIndexToAddress(1), receiver);
-        assertEq(mockERC721_2.ownerOf(2), receiver);
+
+    /////////////////////////////////////////////////////////////////////////////////////////// 
+    //                                      UTILS                                            // 
+    /////////////////////////////////////////////////////////////////////////////////////////// 
+    function mintAndApproveNFTs() internal {
+        mfers.mint(alice, 1);
+        mfers.mint(alice, 2);
+        nakamigos.mint(alice, 1);
+        nakamigos.mint(alice, 2);
+
+        mfers.approve(address(nftBatchTransfer), 1); 
+        mfers.approve(address(nftBatchTransfer), 2);
+        nakamigos.approve(address(nftBatchTransfer), 1); 
+        nakamigos.approve(address(nftBatchTransfer), 2);
+
+        punkMarket.getPunk(1);
+        punkMarket.getPunk(2);
+        punkMarket.transferPunk(address(nftBatchTransfer), 1);
+        punkMarket.transferPunk(address(nftBatchTransfer), 2);
     }
 }
