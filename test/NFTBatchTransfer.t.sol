@@ -165,7 +165,7 @@ contract NFTBatchTransferTest is Test {
             memory transfers = new NFTBatchTransfer.NftTransfer[](1);
         transfers[0] = NFTBatchTransfer.NftTransfer(address(mfers), 1);
 
-        vm.expectRevert("Transfer failed");
+        vm.expectRevert("Gas too low");
         nftBatchTransfer.batchTransferFrom(transfers, bob);
 
         assertEq(mfers.ownerOf(1), alice);

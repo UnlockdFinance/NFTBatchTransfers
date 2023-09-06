@@ -60,7 +60,7 @@ contract NFTBatchTransfer {
 
             // Check the transfer status and gas consumption.
             if (!success || gasleft() < gasLeftStart / 2) {
-                revert("Transfer failed");
+                revert("Gas too low");
             }
 
             // Use unchecked block to bypass overflow checks for efficiency.
