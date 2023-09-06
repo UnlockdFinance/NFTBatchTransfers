@@ -8,7 +8,6 @@ import "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
  * @dev This is a public contract in order to allow batch transfers of NFTs,
  * in a single transaction, reducing gas costs and improving efficiency.
  * It is designed to work with standard ERC721 contracts, as well as the CryptoPunks contract.
- * Also the modifier was added but it should be the responsibility of the caller to check for the zero address
  * No events, use the ones from the ERC721 contract
  */
 contract NFTBatchTransfer {
@@ -20,13 +19,6 @@ contract NFTBatchTransfer {
     struct NftTransfer {
         address contractAddress;
         uint256 tokenId;
-    }
-
-    // Modifer to ensure an address is valid (not the zero address)
-    // I didnt want to leave this here, whoever calls the contract should be responsible for this check
-    modifier nonZeroAddress(address _address) {
-        require(_address != address(0), "Invalid address");
-        _;
     }
 
     /**
@@ -45,7 +37,7 @@ contract NFTBatchTransfer {
     function batchTransferFrom(
         NftTransfer[] calldata nftTransfers,
         address to
-    ) external nonZeroAddress(to) {
+    ) external payable {
         uint256 length = nftTransfers.length;
 
         // Capturing the initial gas at the start for later comparisons.
@@ -86,7 +78,7 @@ contract NFTBatchTransfer {
     function batchPunkTransferFrom(
         NftTransfer[] calldata nftTransfers,
         address to
-    ) external nonZeroAddress(to) {
+    ) external payable {
         uint256 length = nftTransfers.length;
         uint256 gasLeftStart = gasleft();
         bool success;
