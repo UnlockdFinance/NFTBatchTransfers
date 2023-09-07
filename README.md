@@ -137,7 +137,10 @@ $ forge snapshot
 
 # 🚀 Deployments
 
-This contract is deployed on Goerli: 0xC55111678fD380102e89F76da5832Be9e3A36A60
+This contract is deployed on: 
+
+Goerli: 0xC55111678fD380102e89F76da5832Be9e3A36A60
+Sepolia: 0x720b094Ab68D7306d1545AD615fDE974fA6D86D9
 
 ### These addresses are added on both deploy scripts: 
 
@@ -160,14 +163,6 @@ $ forge script script/DeployGoerliNFTBatchTransfer.s.sol:DeployGoerliNFTBatchTra
 
 ## Verify
 
-### Goerli
-
 ```bash
-forge verify-contract --num-of-optimizations 200 <deployed_address> src/NFTBatchTransferFlattened.sol:NFTBatchTransfer --etherscan-api-key <etherscan_api_key> --chain 5
-```
-
-### Mainnet
-
-```bash
-forge verify-contract --num-of-optimizations 200 <deployed_address> src/NFTBatchTransferFlattened.sol:NFTBatchTransfer --etherscan-api-key <etherscan_api_key> --chain 1
+forge verify-contract --num-of-optimizations 200 <deployed_address> src/NFTBatchTransferFlattened.sol:NFTBatchTransfer --etherscan-api-key <etherscan_api_key> --chain <chainId>
 ```

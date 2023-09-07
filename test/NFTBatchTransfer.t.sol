@@ -3,8 +3,8 @@ pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
 import "../src/NFTBatchTransfer.sol";
-import "./MockERC721.sol";
-import "./MockPunkMarket.sol";
+import "./mocks/MockERC721.sol";
+import "./mocks/MockPunkMarket.sol";
 
 // added to test fallback!
 interface NonExistentFunction {
