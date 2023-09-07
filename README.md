@@ -94,6 +94,7 @@ The NFTBatchTransfer contract is designed to facilitate the batch transfer of NF
 
 # 🎬 Setup
 
+
 You will need to have Foundry installed in your machine, I recomend to check https://book.getfoundry.sh/
 
 ### Install
@@ -109,6 +110,7 @@ $ forge build
 ```
 
 # 🧪 Test
+
 
 ### Tests
 
@@ -137,15 +139,20 @@ $ forge snapshot
 
 # 🚀 Deployments
 
+
 This contract is deployed on: 
 
 Goerli: 0xC55111678fD380102e89F76da5832Be9e3A36A60
+
 Sepolia: 0x720b094Ab68D7306d1545AD615fDE974fA6D86D9
 
 ### These addresses are added on both deploy scripts: 
 
+
 Mainnet CryptoPunksMarket Address: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"
+
 Unlockd Mock CryptoPunksMarket Goerli Address: "0x3aFE908110e5c5275Bc96a9e42DB1B322590bDa4"
+
 Unlockd Mock CryptoPunksMarket Sepolia Address: "0x720b094Ab68D7306d1545AD615fDE974fA6D86D9"
 
 ## Deploy
