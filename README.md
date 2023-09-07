@@ -170,6 +170,12 @@ $ forge script script/DeployGoerliNFTBatchTransfer.s.sol:DeployGoerliNFTBatchTra
 
 ## Verify
 
+If you prefer you can flatten the files so all solidity files in your contract (imports) will become a single file, making it easier to verify.
+
+```bash
+forge forge flatten <solidity file path> > <flattened file path>
+```
+
 ```bash
 forge verify-contract --num-of-optimizations 200 <deployed_address> src/NFTBatchTransferFlattened.sol:NFTBatchTransfer --etherscan-api-key <etherscan_api_key> --chain <chainId>
 ```
