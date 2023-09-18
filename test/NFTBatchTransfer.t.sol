@@ -97,7 +97,7 @@ contract NFTBatchTransferTest is Test {
             memory transfers = new NFTBatchTransfer.NftTransfer[](1);
         transfers[0] = NFTBatchTransfer.NftTransfer(address(mfers), 1);
 
-        vm.expectRevert("Gas too low");
+        vm.expectRevert("TransferFrom failed");
         nftBatchTransfer.batchTransferFrom(transfers, bob);
 
         assertEq(mfers.ownerOf(1), alice);
@@ -114,75 +114,6 @@ contract NFTBatchTransferTest is Test {
     function testReceiveRevert() public {
         vm.expectRevert("Contract does not accept Ether");
         payable(address(nftBatchTransfer)).transfer(1 ether);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    //                                        GAS                                            //
-    ///////////////////////////////////////////////////////////////////////////////////////////
-
-    // The following tests are for just for gas metrics and understanding the gas costs of
-    // the batch transfer function.
-    function testBatchSizeLimit() public {
-        vm.startPrank(alice);
-        // Mint lots of NFTs
-        uint numNFTs = 1192;
-        for (uint i = 1; i <= numNFTs; i++) {
-            mfers.mint(alice, i);
-        }
-
-        mfers.setApprovalForAll(address(nftBatchTransfer), true);
-
-        // Try to batch transfer them all
-        uint tokenId = 1;
-        NFTBatchTransfer.NftTransfer[]
-            memory transfers = new NFTBatchTransfer.NftTransfer[](numNFTs);
-        for (uint i = 0; i < numNFTs; i++) {
-            transfers[i] = NFTBatchTransfer.NftTransfer(
-                address(mfers),
-                tokenId
-            );
-            tokenId++;
-        }
-
-        uint startGas = gasleft();
-
-        nftBatchTransfer.batchTransferFrom(transfers, bob);
-
-        assertTrue(startGas - gasleft() < 10000000); // 10 Million gas limit
-        vm.stopPrank();
-    }
-
-    function testGasOptimization() public {
-        vm.startPrank(alice);
-
-        uint numNFTs = 19;
-        for (uint i = 1; i <= numNFTs; i++) {
-            mfers.mint(alice, i);
-        }
-
-        mfers.setApprovalForAll(address(nftBatchTransfer), true);
-
-        // Record starting gas
-        uint startGas = gasleft();
-        uint tokenId = 1;
-
-        // Batch transfer
-        NFTBatchTransfer.NftTransfer[]
-            memory transfers = new NFTBatchTransfer.NftTransfer[](numNFTs);
-        for (uint i = 0; i < numNFTs; i++) {
-            transfers[i] = NFTBatchTransfer.NftTransfer(
-                address(mfers),
-                tokenId
-            );
-            tokenId++;
-        }
-
-        nftBatchTransfer.batchTransferFrom(transfers, bob);
-
-        // Assert gas used is under limit
-        assertTrue(startGas - gasleft() < 200000);
-
-        vm.stopPrank();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

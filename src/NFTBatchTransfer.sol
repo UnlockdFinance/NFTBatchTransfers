@@ -35,9 +35,6 @@ contract NFTBatchTransfer {
     ) external payable {
         uint256 length = nftTransfers.length;
 
-        // Capturing the initial gas at the start for later comparisons.
-        uint256 gasLeftStart = gasleft();
-
         // Iterate through each NFT in the array to facilitate the transfer.
         for (uint i = 0; i < length;) {
             address contractAddress = nftTransfers[i].contractAddress;
@@ -53,9 +50,9 @@ contract NFTBatchTransfer {
                 )
             );
 
-            // Check the transfer status and gas consumption.
-            if (!success || gasleft() < gasLeftStart / 2) {
-                revert("Gas too low");
+            // Check the transfer status.
+            if (!success) {
+                revert("TransferFrom failed");
             }
 
             // Use unchecked block to bypass overflow checks for efficiency.
