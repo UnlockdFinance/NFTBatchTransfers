@@ -165,7 +165,7 @@ contract NFTBatchTransferTest is Test {
             memory transfers = new NFTBatchTransfer.NftTransfer[](1);
         transfers[0] = NFTBatchTransfer.NftTransfer(address(mfers), 1);
 
-        vm.expectRevert("TransferFrom failed");
+        vm.expectRevert(0x7939f424);
         nftBatchTransfer.batchTransferFrom(transfers, bob);
 
         assertEq(mfers.ownerOf(1), alice);
@@ -181,7 +181,7 @@ contract NFTBatchTransferTest is Test {
             memory transfers = new NFTBatchTransfer.NftTransfer[](1);
         transfers[0] = NFTBatchTransfer.NftTransfer(address(punkMarket), 3);
 
-        vm.expectRevert("Not Owner");
+        vm.expectRevert(0x30cd7471);
         nftBatchTransfer.batchPunkTransferFrom(transfers, bob);
 
         assertEq(punkMarket.punkIndexToAddress(1), alice);
@@ -190,13 +190,13 @@ contract NFTBatchTransferTest is Test {
     }
 
     function testFallbackFunction() public {
-        vm.expectRevert("Fallback not allowed");
+        vm.expectRevert(0x52b4643c);
         NonExistentFunction nef = NonExistentFunction(address(nftBatchTransfer));
         nef.nonExistent{value: 1 ether}();  // This will trigger the fallback function
     }
 
     function testReceiveRevert() public {
-        vm.expectRevert("Contract does not accept Ether");
+        vm.expectRevert(0xabdfd301);
         payable(address(nftBatchTransfer)).transfer(1 ether);
     }
 

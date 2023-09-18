@@ -12,9 +12,26 @@ import {ICryptoPunksMarket} from "../src/interfaces/ICryptoPunksMarket.sol";
  * No events, use the ones from the ERC721 contract
  */
 contract NFTBatchTransfer {
+
+    /*//////////////////////////////////////////////////////////////
+                             ERRORS
+    //////////////////////////////////////////////////////////////*/
+    error TransferFromFailed();
+    error BuyFailed();
+    error TransferFailed();
+    error NotOwner();
+    error CantReceiveETH();
+    error Fallback();
+    
+    /*//////////////////////////////////////////////////////////////
+                           IMMUTABLES
+    //////////////////////////////////////////////////////////////*/
     // Immutable address for the CryptoPunks contract. This is set at deployment and cannot be altered afterwards.
     address public immutable punkContract;
 
+    /*//////////////////////////////////////////////////////////////
+                            STRUCTS
+    //////////////////////////////////////////////////////////////*/
     // Struct to encapsulate information about an individual NFT transfer.
     // It holds the address of the ERC721 contract and the specific token ID to be transferred.
     struct NftTransfer {
@@ -22,6 +39,9 @@ contract NFTBatchTransfer {
         uint256 tokenId;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                          INITIALIZATION
+    //////////////////////////////////////////////////////////////*/
     /**
      * @dev Constructor to set the initial state of the contract.
      * @param _punkContract The address of the CryptoPunks contract.
@@ -30,6 +50,22 @@ contract NFTBatchTransfer {
         punkContract = _punkContract;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                    Fallback and Receive Functions
+    //////////////////////////////////////////////////////////////*/
+    // Explicitly reject any Ether sent to the contract
+    fallback() external payable {
+        revert Fallback();
+    }
+
+    // Explicitly reject any Ether transfered to the contract
+    receive() external payable {
+        revert CantReceiveETH();
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                          LOGIC
+    //////////////////////////////////////////////////////////////*/
     /**
      * @dev Orchestrates a batch transfer of standard ERC721 NFTs.
      * @param nftTransfers An array of NftTransfer structs detailing the NFTs to be moved.
@@ -58,7 +94,7 @@ contract NFTBatchTransfer {
 
             // Check the transfer status.
             if (!success) {
-                revert("TransferFrom failed");
+                revert TransferFromFailed();
             }
 
             // Use unchecked block to bypass overflow checks for efficiency.
@@ -69,7 +105,8 @@ contract NFTBatchTransfer {
     }
 
     /**
-     * @dev Manages a batch transfer of NFTs, specifically tailored for CryptoPunks alongside other standard ERC721 NFTs.
+     * @dev Manages a batch transfer of NFTs, that allow the use of 
+     * CryptoPunks alongside other standard ERC721 NFTs.
      * @param nftTransfers An array of NftTransfer structs specifying the NFTs for transfer.
      * @param to The destination address for the NFTs.
      */
@@ -85,6 +122,7 @@ contract NFTBatchTransfer {
             address contractAddr = nftTransfers[i].contractAddress;
             uint256 tokenId = nftTransfers[i].tokenId;
 
+            // Check if the NFT is a CryptoPunk.
             if (contractAddr != punkContract) {
                 // If it's not a CryptoPunk, use the standard ERC721 `transferFrom` function.
                 (success, ) = contractAddr.call(
@@ -95,19 +133,21 @@ contract NFTBatchTransfer {
                         tokenId
                     )
                 );
-            } else {
+            } 
+            // If it's a CryptoPunk, use the CryptoPunksMarket contract to transfer the punk.
+            else { 
                 // Verify OwnerShip
                 if(ICryptoPunksMarket(punkContract).punkIndexToAddress(tokenId) != msg.sender) 
-                    revert("Not Owner");
+                    revert NotOwner();
                 
                 // If it's a CryptoPunk, first the contract buy the punk to be allowed to transfer it.
                 (success, ) = punkContract.call{value: 0}(
                     abi.encodeWithSignature("buyPunk(uint256)", tokenId)
                 );
 
-                // Check the transfer status
+                // Check the buyPunk status
                 if (!success) {
-                    revert("Buy failed");
+                    revert BuyFailed();
                 }
 
                 // Once the punk is owned by the contract, the transfer method is executed
@@ -121,23 +161,14 @@ contract NFTBatchTransfer {
                 
                 // Check the transfer status.
                 if (!success) {
-                    revert("Transfer failed");
+                    revert TransferFailed();
                 }
             }
 
-            unchecked {
-                i++;
+            // Use unchecked block to bypass overflow checks for efficiency.
+            unchecked { 
+                i++; 
             }
         }
-    }
-
-    // Explicitly reject any Ether sent to the contract
-    fallback() external payable {
-        revert("Fallback not allowed");
-    }
-
-    // Explicitly reject any Ether transfered to the contract
-    receive() external payable {
-        revert("Contract does not accept Ether");
     }
 }
