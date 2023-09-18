@@ -9,6 +9,7 @@ import "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
  * in a single transaction, reducing gas costs and improving efficiency.
  * It is designed to work with standard ERC721 contracts
  * No events, use the ones from the ERC721 contract
+ * No 0 address verification on the to address BE CAREFULL
  */
 contract NFTBatchTransfer {
 
@@ -27,7 +28,7 @@ contract NFTBatchTransfer {
     /**
      * @dev Orchestrates a batch transfer of standard ERC721 NFTs.
      * @param nftTransfers An array of NftTransfer structs detailing the NFTs to be moved.
-     * @param to The recipient's address.
+     * @param to The recipient's address (NO 0 ADDRESS VERIFICATION).
      */
     function batchTransferFrom(
         NftTransfer[] calldata nftTransfers,
