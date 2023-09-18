@@ -2,16 +2,18 @@
 pragma solidity 0.8.19;
 
 import "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
+import {ICryptoPunksMarket} from "../src/interfaces/ICryptoPunksMarket.sol";
 
 /**
  * @title NFTBatchTransfer
  * @dev This is a public contract in order to allow batch transfers of NFTs,
  * in a single transaction, reducing gas costs and improving efficiency.
- * It is designed to work with standard ERC721 contracts
+ * It is designed to work with standard ERC721 contracts, as well as the CryptoPunks contract.
  * No events, use the ones from the ERC721 contract
- * No 0 address verification on the to address BE CAREFULL
  */
 contract NFTBatchTransfer {
+    // Immutable address for the CryptoPunks contract. This is set at deployment and cannot be altered afterwards.
+    address public immutable punkContract;
 
     // Struct to encapsulate information about an individual NFT transfer.
     // It holds the address of the ERC721 contract and the specific token ID to be transferred.
@@ -22,13 +24,16 @@ contract NFTBatchTransfer {
 
     /**
      * @dev Constructor to set the initial state of the contract.
-    **/
-    constructor() {}
+     * @param _punkContract The address of the CryptoPunks contract.
+     */
+    constructor(address _punkContract) {
+        punkContract = _punkContract;
+    }
 
     /**
      * @dev Orchestrates a batch transfer of standard ERC721 NFTs.
      * @param nftTransfers An array of NftTransfer structs detailing the NFTs to be moved.
-     * @param to The recipient's address (NO 0 ADDRESS VERIFICATION).
+     * @param to The recipient's address.
      */
     function batchTransferFrom(
         NftTransfer[] calldata nftTransfers,
@@ -57,6 +62,69 @@ contract NFTBatchTransfer {
             }
 
             // Use unchecked block to bypass overflow checks for efficiency.
+            unchecked {
+                i++;
+            }
+        }
+    }
+
+    /**
+     * @dev Manages a batch transfer of NFTs, specifically tailored for CryptoPunks alongside other standard ERC721 NFTs.
+     * @param nftTransfers An array of NftTransfer structs specifying the NFTs for transfer.
+     * @param to The destination address for the NFTs.
+     */
+    function batchPunkTransferFrom(
+        NftTransfer[] calldata nftTransfers,
+        address to
+    ) external payable {
+        uint256 length = nftTransfers.length;
+        bool success;
+
+        // Process batch transfers, differentiate between CryptoPunks and standard ERC721 tokens.
+        for (uint i = 0; i < length;) {
+            address contractAddr = nftTransfers[i].contractAddress;
+            uint256 tokenId = nftTransfers[i].tokenId;
+
+            if (contractAddr != punkContract) {
+                // If it's not a CryptoPunk, use the standard ERC721 `transferFrom` function.
+                (success, ) = contractAddr.call(
+                    abi.encodeWithSignature(
+                        "transferFrom(address,address,uint256)",
+                        msg.sender,
+                        to,
+                        tokenId
+                    )
+                );
+            } else {
+                // Verify OwnerShip
+                if(ICryptoPunksMarket(punkContract).punkIndexToAddress(tokenId) != msg.sender) 
+                    revert("Not Owner");
+                
+                // If it's a CryptoPunk, first the contract buy the punk to be allowed to transfer it.
+                (success, ) = punkContract.call{value: 0}(
+                    abi.encodeWithSignature("buyPunk(uint256)", tokenId)
+                );
+
+                // Check the transfer status
+                if (!success) {
+                    revert("Buy failed");
+                }
+
+                // Once the punk is owned by the contract, the transfer method is executed
+                (success, ) = punkContract.call(
+                    abi.encodeWithSignature(
+                        "transferPunk(address,uint256)",
+                        to,
+                        tokenId
+                    )
+                );
+                
+                // Check the transfer status.
+                if (!success) {
+                    revert("Transfer failed");
+                }
+            }
+
             unchecked {
                 i++;
             }
