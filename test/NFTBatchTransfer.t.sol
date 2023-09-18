@@ -4,7 +4,6 @@ pragma solidity 0.8.19;
 import "forge-std/Test.sol";
 import "../src/NFTBatchTransfer.sol";
 import "./mocks/MockERC721.sol";
-import "./mocks/MockPunkMarket.sol";
 
 // added to test fallback!
 interface NonExistentFunction {
@@ -17,8 +16,6 @@ contract NFTBatchTransferTest is Test {
     MockERC721 mfers;
     MockERC721 nakamigos;
 
-    MockPunkMarket punkMarket;
-
     address internal deployer = address(0x123);
     address internal alice = address(0x456);
     address internal bob = address(0x789);
@@ -28,10 +25,7 @@ contract NFTBatchTransferTest is Test {
         mfers = new MockERC721("MFERS", "MFERS");
         nakamigos = new MockERC721("NAKAMIGOS", "NAKAMIGOS");
 
-        punkMarket = new MockPunkMarket();
-        punkMarket.allInitialOwnersAssigned();
-
-        nftBatchTransfer = new NFTBatchTransfer(address(punkMarket));
+        nftBatchTransfer = new NFTBatchTransfer();
         vm.stopPrank();
     }
 
@@ -87,68 +81,6 @@ contract NFTBatchTransferTest is Test {
         assertEq(nakamigos.ownerOf(2), bob);
 
         vm.stopPrank();
-    }
-
-    function testSinglePunkTransfer() public {
-        vm.startPrank(alice);
-        mintAndApproveNFTs();
-
-        NFTBatchTransfer.NftTransfer[]
-            memory transfers = new NFTBatchTransfer.NftTransfer[](1);
-        transfers[0] = NFTBatchTransfer.NftTransfer(address(punkMarket), 1);
-        nftBatchTransfer.batchPunkTransferFrom(transfers, bob);
-
-        assertEq(punkMarket.punkIndexToAddress(1), bob);
-        vm.stopPrank();
-    }
-
-    function testBatchPunkTransferFromSameCollection() public {
-        vm.startPrank(alice);
-        mintAndApproveNFTs();
-
-        NFTBatchTransfer.NftTransfer[]
-            memory transfers = new NFTBatchTransfer.NftTransfer[](2);
-        transfers[0] = NFTBatchTransfer.NftTransfer(address(punkMarket), 1);
-        transfers[1] = NFTBatchTransfer.NftTransfer(address(punkMarket), 2);
-
-        nftBatchTransfer.batchPunkTransferFrom(transfers, bob);
-
-        assertEq(punkMarket.punkIndexToAddress(1), bob);
-        assertEq(punkMarket.punkIndexToAddress(2), bob);
-        vm.stopPrank();
-    }
-
-    function testBatchPunkTransferFromMultipleCollections() public {
-        vm.startPrank(alice);
-        mintAndApproveNFTs();
-
-        NFTBatchTransfer.NftTransfer[]
-            memory transfers = new NFTBatchTransfer.NftTransfer[](6);
-        transfers[0] = NFTBatchTransfer.NftTransfer(address(mfers), 1);
-        transfers[1] = NFTBatchTransfer.NftTransfer(address(nakamigos), 1);
-        transfers[2] = NFTBatchTransfer.NftTransfer(address(punkMarket), 1);
-        transfers[3] = NFTBatchTransfer.NftTransfer(address(mfers), 2);
-        transfers[4] = NFTBatchTransfer.NftTransfer(address(nakamigos), 2);
-        transfers[5] = NFTBatchTransfer.NftTransfer(address(punkMarket), 2);
-
-        nftBatchTransfer.batchPunkTransferFrom(transfers, bob);
-
-        assertEq(mfers.ownerOf(1), bob);
-        assertEq(nakamigos.ownerOf(1), bob);
-        assertEq(mfers.ownerOf(2), bob);
-        assertEq(nakamigos.ownerOf(2), bob);
-        assertEq(punkMarket.punkIndexToAddress(1), bob);
-        assertEq(punkMarket.punkIndexToAddress(2), bob);
-
-        vm.stopPrank();
-    }
-
-    function testSetPunkContract() public {
-        address expectedPunkContract = address(punkMarket);
-
-        nftBatchTransfer = new NFTBatchTransfer(expectedPunkContract);
-
-        assertEq(address(nftBatchTransfer.punkContract()), expectedPunkContract);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -266,10 +198,5 @@ contract NFTBatchTransferTest is Test {
         mfers.approve(address(nftBatchTransfer), 2);
         nakamigos.approve(address(nftBatchTransfer), 1);
         nakamigos.approve(address(nftBatchTransfer), 2);
-
-        punkMarket.getPunk(1);
-        punkMarket.getPunk(2);
-        punkMarket.offerPunkForSaleToAddress(1, 0, address(nftBatchTransfer));
-        punkMarket.offerPunkForSaleToAddress(2, 0, address(nftBatchTransfer));
     }
 }
