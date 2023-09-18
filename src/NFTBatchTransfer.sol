@@ -30,7 +30,7 @@ contract NFTBatchTransfer {
     address public immutable punkContract;
 
     /*//////////////////////////////////////////////////////////////
-                            STRUCTS
+                              STRUCTS
     //////////////////////////////////////////////////////////////*/
     // Struct to encapsulate information about an individual NFT transfer.
     // It holds the address of the ERC721 contract and the specific token ID to be transferred.

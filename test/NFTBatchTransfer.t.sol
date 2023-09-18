@@ -46,7 +46,12 @@ contract NFTBatchTransferTest is Test {
         NFTBatchTransfer.NftTransfer[]
             memory transfers = new NFTBatchTransfer.NftTransfer[](1);
         transfers[0] = NFTBatchTransfer.NftTransfer(address(mfers), 1);
+        
+        uint startGas = gasleft();
         nftBatchTransfer.batchTransferFrom(transfers, bob);
+        uint endGas = gasleft();
+        uint gasUsed = startGas - endGas;
+        console.log("Gas used: ", gasUsed);
 
         assertEq(mfers.ownerOf(1), bob);
         vm.stopPrank();
@@ -61,7 +66,11 @@ contract NFTBatchTransferTest is Test {
         transfers[0] = NFTBatchTransfer.NftTransfer(address(mfers), 1);
         transfers[1] = NFTBatchTransfer.NftTransfer(address(mfers), 2);
 
+        uint startGas = gasleft();
         nftBatchTransfer.batchTransferFrom(transfers, bob);
+        uint endGas = gasleft();
+        uint gasUsed = startGas - endGas;
+        console.log("Gas used: ", gasUsed);
 
         assertEq(mfers.ownerOf(1), bob);
         assertEq(mfers.ownerOf(2), bob);
@@ -79,7 +88,11 @@ contract NFTBatchTransferTest is Test {
         transfers[2] = NFTBatchTransfer.NftTransfer(address(mfers), 2);
         transfers[3] = NFTBatchTransfer.NftTransfer(address(nakamigos), 2);
 
+        uint startGas = gasleft();
         nftBatchTransfer.batchTransferFrom(transfers, bob);
+        uint endGas = gasleft();
+        uint gasUsed = startGas - endGas;
+        console.log("Gas used: ", gasUsed);
 
         assertEq(mfers.ownerOf(1), bob);
         assertEq(nakamigos.ownerOf(1), bob);
@@ -96,7 +109,12 @@ contract NFTBatchTransferTest is Test {
         NFTBatchTransfer.NftTransfer[]
             memory transfers = new NFTBatchTransfer.NftTransfer[](1);
         transfers[0] = NFTBatchTransfer.NftTransfer(address(punkMarket), 1);
+
+        uint startGas = gasleft();
         nftBatchTransfer.batchPunkTransferFrom(transfers, bob);
+        uint endGas = gasleft();
+        uint gasUsed = startGas - endGas;
+        console.log("Gas used: ", gasUsed);
 
         assertEq(punkMarket.punkIndexToAddress(1), bob);
         vm.stopPrank();
@@ -111,7 +129,11 @@ contract NFTBatchTransferTest is Test {
         transfers[0] = NFTBatchTransfer.NftTransfer(address(punkMarket), 1);
         transfers[1] = NFTBatchTransfer.NftTransfer(address(punkMarket), 2);
 
+        uint startGas = gasleft();
         nftBatchTransfer.batchPunkTransferFrom(transfers, bob);
+        uint endGas = gasleft();
+        uint gasUsed = startGas - endGas;
+        console.log("Gas used: ", gasUsed);
 
         assertEq(punkMarket.punkIndexToAddress(1), bob);
         assertEq(punkMarket.punkIndexToAddress(2), bob);
@@ -131,7 +153,11 @@ contract NFTBatchTransferTest is Test {
         transfers[4] = NFTBatchTransfer.NftTransfer(address(nakamigos), 2);
         transfers[5] = NFTBatchTransfer.NftTransfer(address(punkMarket), 2);
 
+        uint startGas = gasleft();
         nftBatchTransfer.batchPunkTransferFrom(transfers, bob);
+        uint endGas = gasleft();
+        uint gasUsed = startGas - endGas;
+        console.log("Gas used: ", gasUsed);
 
         assertEq(mfers.ownerOf(1), bob);
         assertEq(nakamigos.ownerOf(1), bob);
