@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
+import {ICryptoPunksMarket} from "../src/interfaces/ICryptoPunksMarket.sol";
 
 /**
  * @title NFTBatchTransfer
@@ -95,12 +96,16 @@ contract NFTBatchTransfer {
                     )
                 );
             } else {
+                // Verify OwnerShip
+                if(ICryptoPunksMarket(punkContract).punkIndexToAddress(tokenId) != msg.sender) 
+                    revert("Not Owner");
+                
                 // If it's a CryptoPunk, first the contract buy the punk to be allowed to transfer it.
                 (success, ) = punkContract.call{value: 0}(
                     abi.encodeWithSignature("buyPunk(uint256)", tokenId)
                 );
 
-                // Check the transfer status. FRONTRUN THIS MFER!!
+                // Check the transfer status
                 if (!success) {
                     revert("Buy failed");
                 }

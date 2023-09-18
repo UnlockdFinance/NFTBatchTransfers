@@ -182,7 +182,7 @@ contract NFTBatchTransferTest is Test {
             memory transfers = new NFTBatchTransfer.NftTransfer[](1);
         transfers[0] = NFTBatchTransfer.NftTransfer(address(punkMarket), 3);
 
-        vm.expectRevert("Buy failed");
+        vm.expectRevert("Not Owner");
         nftBatchTransfer.batchPunkTransferFrom(transfers, bob);
 
         assertEq(punkMarket.punkIndexToAddress(1), alice);
@@ -200,25 +200,6 @@ contract NFTBatchTransferTest is Test {
         vm.expectRevert("Contract does not accept Ether");
         payable(address(nftBatchTransfer)).transfer(1 ether);
     }
-
-    // function testFrontRunSinglePunkTransfer() public {
-    //     vm.startPrank(alice);
-    //     mintAndApproveNFTs();
-
-    //     NFTBatchTransfer.NftTransfer[]
-    //         memory transfers = new NFTBatchTransfer.NftTransfer[](1);
-    //     transfers[0] = NFTBatchTransfer.NftTransfer(address(punkMarket), 1);
-    //     nftBatchTransfer.batchPunkTransferFrom(transfers, bob);
-
-    //     vm.startPrank(hacker);
-    //     vm.expectRevert("Buy failed");
-
-    //     transfers[0] = NFTBatchTransfer.NftTransfer(address(punkMarket), 1);
-    //     nftBatchTransfer.batchPunkTransferFrom(transfers, hacker);
-
-    //     assertEq(punkMarket.punkIndexToAddress(1), bob);
-    //     vm.stopPrank();
-    // }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     //                                      UTILS                                            //
