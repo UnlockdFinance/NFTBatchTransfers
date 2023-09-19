@@ -157,22 +157,10 @@ Unlockd Mock CryptoPunksMarket Sepolia Address: "0x720b094Ab68D7306d1545AD615fDE
 
 ## Deploy
 
-### Goerli
-
-```bash
-$ forge script script/DeployGoerliNFTBatchTransfer.s.sol:DeployGoerliNFTBatchTransfer --rpc-url <your_rpc_url> --private-key <your_private_key> --broadcast -vvvv
-```
-
-### Sepolia
-
-```bash
-$ forge script script/DeploySepoliaNFTBatchTransfer.s.sol:DeploySepoliaNFTBatchTransfer --rpc-url <your_rpc_url> --private-key <your_private_key> --broadcast -vvvv
-```
-
 ### Mainnet
 
 ```bash
-$ forge script script/DeployGoerliNFTBatchTransfer.s.sol:DeployGoerliNFTBatchTransfer --rpc-url <your_rpc_url> --private-key <your_private_key> --broadcast -vvvv
+$ forge script script/DeployNFTBatchTransfer.s.sol:DeployNFTBatchTransfer --rpc-url <your_rpc_url> --private-key <your_private_key> --broadcast -vvvv
 ```
 
 ## Verify
