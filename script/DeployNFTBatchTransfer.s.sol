@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import "forge-std/Script.sol";
 import "../src/NFTBatchTransfer.sol"; 
 
-contract DeployMainNFTBatchTransfer is Script {
+contract DeployNFTBatchTransfer is Script {
   function run() public {
     vm.startBroadcast();
     // Goerli: 0x3aFE908110e5c5275Bc96a9e42DB1B322590bDa4
