@@ -142,9 +142,9 @@ $ forge snapshot
 
 This contract is deployed on: 
 
-Goerli: 0xC55111678fD380102e89F76da5832Be9e3A36A60
+Sepolia: 0xAbA905EbA39b9a55FD0f910a6415BA91c3E9353d
 
-Sepolia: 0x720b094Ab68D7306d1545AD615fDE974fA6D86D9
+Mainnet: 0x0c331e00703a9857819fa1Eb72aA3d4DE0f6f725
 
 ### These addresses are added on both deploy scripts: 
 
