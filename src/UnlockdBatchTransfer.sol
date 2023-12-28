@@ -5,6 +5,8 @@ import {ICryptoPunksMarket} from "../src/interfaces/ICryptoPunksMarket.sol";
 import {IUSablierLockupLinear} from "../src/interfaces/IUSablierLockupLinear.sol";
 import {IACLManager} from '../src/interfaces/IACLManager.sol';
 
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+
 /**
  * @title UnlockdBatchTransfer
  * @dev This is a public contract in order to allow batch transfers of NFTs,
@@ -13,7 +15,7 @@ import {IACLManager} from '../src/interfaces/IACLManager.sol';
  * It is also designed to work with the Unlockd protocol, and the USablierLockupLinear contract.
  * We will be adding the functionality to add wrappers to the contract.
  */
-contract UnlockdBatchTransfer {
+contract UnlockdBatchTransfer is IERC721Receiver {
 
     /*//////////////////////////////////////////////////////////////
                              ERRORS
@@ -229,4 +231,21 @@ contract UnlockdBatchTransfer {
         address wrapContract = toBeWrapped[asset];
         IUSablierLockupLinear(wrapContract).mint(to, tokenId); 
     }
+
+    /*//////////////////////////////////////////////////////////////
+                          LOGIC
+    //////////////////////////////////////////////////////////////*/
+    function onERC721Received(
+    address, // operator,
+    address, // from
+    uint256, // tokenId,
+    bytes calldata data
+  ) external override returns (bytes4) {
+    (address asset, uint256 tokenId, address to) = abi.decode(data, (address, uint256, address));
+    if(isToBeWrapped(asset) != address(0)) {
+        _wrapNFT(asset, tokenId, to);
+    }
+    
+    return this.onERC721Received.selector;
+  }
 }
