@@ -121,10 +121,6 @@ contract UnlockdBatchTransfer {
                 revert TransferFromFailed();
             }
 
-            if(isToBeWrapped(contractAddress) != address(0)) {
-                _wrapNFT(contractAddress, tokenId, to);
-            }
-
             // Use unchecked block to bypass overflow checks for efficiency.
             unchecked {
                 i++;
@@ -161,10 +157,6 @@ contract UnlockdBatchTransfer {
                         tokenId
                     )
                 );
-
-                if(isToBeWrapped(contractAddr) != address(0)) {
-                    _wrapNFT(contractAddr, tokenId, to);
-                }
             } 
             // If it's a CryptoPunk, use the CryptoPunksMarket contract to transfer the punk.
             else { 
@@ -204,13 +196,8 @@ contract UnlockdBatchTransfer {
         }
     }
 
-    function _wrapNFT(address asset, uint256 tokenId, address to) internal {
-        address wrapContract = toBeWrapped[asset];
-        IUSablierLockupLinear(wrapContract).mint(to, tokenId); 
-    }
-
     /*//////////////////////////////////////////////////////////////
-                        GETTERS AND SETTERS
+                            WRAPPER
     //////////////////////////////////////////////////////////////*/
     /**
      * @notice adds an asset and its wrap address to the mapping.
@@ -235,5 +222,11 @@ contract UnlockdBatchTransfer {
      */
     function isToBeWrapped(address asset) public view returns (address) {
         return toBeWrapped[asset];
+    }
+
+    function _wrapNFT(address asset, uint256 tokenId, address to) internal {
+        // verify address(0) or let it revert.
+        address wrapContract = toBeWrapped[asset];
+        IUSablierLockupLinear(wrapContract).mint(to, tokenId); 
     }
 }
