@@ -236,16 +236,16 @@ contract UnlockdBatchTransfer is IERC721Receiver {
                           IERC721RECEIVER
     //////////////////////////////////////////////////////////////*/
     function onERC721Received(
-    address, // operator,
-    address, // from
-    uint256, // tokenId,
-    bytes calldata data
+        address, // operator,
+        address, // from
+        uint256, // tokenId,
+        bytes calldata data
     ) external override returns (bytes4) {
-    (address asset, uint256 tokenId, address to) = abi.decode(data, (address, uint256, address));
-    if(isToBeWrapped(asset) != address(0)) {
-        _wrapNFT(asset, tokenId, to);
-    }
-    
-    return this.onERC721Received.selector;
+        (address asset, uint256 tokenId, address to) = abi.decode(data, (address, uint256, address));
+        if(isToBeWrapped(asset) != address(0)) {
+            _wrapNFT(asset, tokenId, to);
+        }
+        
+        return this.onERC721Received.selector;
     }
 }

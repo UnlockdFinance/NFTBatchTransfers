@@ -6,6 +6,7 @@ import {UnlockdBatchTransfer} from "../src/UnlockdBatchTransfer.sol";
 import {MockERC721} from "./mocks/MockERC721.sol";
 import {MockPunkMarket} from "./mocks/MockPunkMarket.sol";
 import {MockACLManager} from "./mocks/MockACLManager.sol";
+import {MockSoulbound} from "./mocks/MockSoulbound.sol";
 
 // added to test fallback!
 interface NonExistentFunction {
@@ -18,7 +19,7 @@ contract _unlockdBatchTransferTest is Test {
     MockACLManager _aclManager;
     MockERC721 _mfers;
     MockERC721 _nakamigos;
-    MockERC721 _sablier;
+    MockSoulbound _uMfers;
 
     MockPunkMarket _punkMarket;
 
@@ -33,14 +34,16 @@ contract _unlockdBatchTransferTest is Test {
         vm.startPrank(_admin);
         _mfers = new MockERC721("MFERS", "MFERS");
         _nakamigos = new MockERC721("NAKAMIGOS", "NAKAMIGOS");
-        _sablier = new MockERC721("SABLIER", "SABLIER");
+        _uMfers = new MockSoulbound(address(_mfers), "uMFERS", "Unlockd Bound Mfers");
 
         _punkMarket = new MockPunkMarket();
         _punkMarket.allInitialOwnersAssigned();
 
         deploy_acl_manager();
-
+        
+        MockERC721(_mfers).setApprovalForAll(address(_unlockdBatchTransfer), true);
         _unlockdBatchTransfer = new UnlockdBatchTransfer(address(_punkMarket), address(_aclManager));
+        _unlockdBatchTransfer.addToBeWrapped(address(_mfers), address(_uMfers));
         vm.stopPrank();
     }
 
