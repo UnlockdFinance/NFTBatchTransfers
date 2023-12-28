@@ -18,6 +18,7 @@ contract _unlockdBatchTransferTest is Test {
     MockACLManager _aclManager;
     MockERC721 _mfers;
     MockERC721 _nakamigos;
+    MockERC721 _sablier;
 
     MockPunkMarket _punkMarket;
 
@@ -32,11 +33,14 @@ contract _unlockdBatchTransferTest is Test {
         vm.startPrank(_admin);
         _mfers = new MockERC721("MFERS", "MFERS");
         _nakamigos = new MockERC721("NAKAMIGOS", "NAKAMIGOS");
+        _sablier = new MockERC721("SABLIER", "SABLIER");
 
         _punkMarket = new MockPunkMarket();
         _punkMarket.allInitialOwnersAssigned();
 
-        _unlockdBatchTransfer = new UnlockdBatchTransfer(address(_punkMarket), address(0x910));
+        deploy_acl_manager();
+
+        _unlockdBatchTransfer = new UnlockdBatchTransfer(address(_punkMarket), address(_aclManager));
         vm.stopPrank();
     }
 

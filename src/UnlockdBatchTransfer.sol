@@ -6,11 +6,12 @@ import {IUSablierLockupLinear} from "../src/interfaces/IUSablierLockupLinear.sol
 import {IACLManager} from '../src/interfaces/IACLManager.sol';
 
 /**
- * @title NFTBatchTransfer
+ * @title UnlockdBatchTransfer
  * @dev This is a public contract in order to allow batch transfers of NFTs,
  * in a single transaction, reducing gas costs and improving efficiency.
  * It is designed to work with standard ERC721 contracts, as well as the CryptoPunks contract.
- * No events, use the ones from the ERC721 contract
+ * It is also designed to work with the Unlockd protocol, and the USablierLockupLinear contract.
+ * We will be adding the functionality to add wrappers to the contract.
  */
 contract UnlockdBatchTransfer {
 
@@ -24,7 +25,8 @@ contract UnlockdBatchTransfer {
     error CantReceiveETH();
     error Fallback();
     error NotProtocolOwner();
-    
+    error AddressZero();
+
     /*//////////////////////////////////////////////////////////////
                             VARIABLES
     //////////////////////////////////////////////////////////////*/
@@ -211,12 +213,20 @@ contract UnlockdBatchTransfer {
                         GETTERS AND SETTERS
     //////////////////////////////////////////////////////////////*/
     /**
-     * @notice Sets the value of the toBeWrapped mapping for a given asset.
+     * @notice adds an asset and its wrap address to the mapping.
      * @param asset the address of the asset to be set
      * @param wrapper the address of the wrapped asset
      */
-    function setToBeWrapped(address asset, address wrapper) external onlyProtocol {
+    function addToBeWrapped(address asset, address wrapper) external onlyProtocol {
         toBeWrapped[asset] = wrapper;
+    }
+
+    /**
+     * @notice Deletes the asset from the mapping.
+     * @param asset the address of the asset to be set
+     */
+    function removeToBeWrapped(address asset) external onlyProtocol {
+        delete toBeWrapped[asset];
     }
 
     /**
