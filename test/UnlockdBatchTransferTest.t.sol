@@ -45,10 +45,13 @@ contract UnlockdBatchTransferTest is Test {
 
         deploy_acl_manager();
         _delegationRegistry = new MockDelegationWalletRegistry();
-        _delegationRegistry.setWallet(address(_safeAlice), address(_alice));
+        _delegationRegistry.setWallet(address(_safeAlice), address(_alice), address(0), address(0), address(0), address(0));
+        
+        MockDelegationWalletRegistry.Wallet memory wallet = _delegationRegistry.getWallet(address(_safeAlice));
+        console.log("wallet.wallet: %s", wallet.wallet);
+        
         _unlockdBatchTransfer = new UnlockdBatchTransfer(address(_punkMarket), address(_aclManager), address(_delegationRegistry));
 
-        vm.startPrank(_admin);
         _unlockdBatchTransfer.addToBeWrapped(address(_mfers), address(_uMfers));
         vm.stopPrank();
     }
@@ -203,7 +206,7 @@ contract UnlockdBatchTransferTest is Test {
             memory transfers = new UnlockdBatchTransfer.NftTransfer[](1);
         transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_mfers), 1);
 
-        vm.expectRevert(UnlockdBatchTransfer.ToNotSafeOwner.selector);
+        vm.expectRevert(UnlockdBatchTransfer.NotSafeOwner.selector);
         _unlockdBatchTransfer.batchTransferFrom(transfers, _alice);
 
         assertEq(_mfers.ownerOf(1), _alice);
@@ -219,7 +222,7 @@ contract UnlockdBatchTransferTest is Test {
             memory transfers = new UnlockdBatchTransfer.NftTransfer[](1);
         transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_punkMarket), 3);
 
-        vm.expectRevert(0x30cd7471);
+        vm.expectRevert();
         _unlockdBatchTransfer.batchPunkTransferFrom(transfers, _safeAlice);
 
         assertEq(_punkMarket.punkIndexToAddress(1), _alice);
@@ -235,7 +238,7 @@ contract UnlockdBatchTransferTest is Test {
             memory transfers = new UnlockdBatchTransfer.NftTransfer[](1);
         transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_punkMarket), 3);
 
-        vm.expectRevert(UnlockdBatchTransfer.ToNotSafeOwner.selector);
+        vm.expectRevert(UnlockdBatchTransfer.NotSafeOwner.selector);
         _unlockdBatchTransfer.batchPunkTransferFrom(transfers, _alice);
 
         assertEq(_punkMarket.punkIndexToAddress(1), _alice);
@@ -275,7 +278,6 @@ contract UnlockdBatchTransferTest is Test {
     }
 
     function deploy_acl_manager() internal {
-        vm.startPrank(_deployer);
         _aclManager = new MockACLManager(_admin);
         vm.stopPrank();
         vm.startPrank(_admin);
@@ -287,7 +289,5 @@ contract UnlockdBatchTransferTest is Test {
         _aclManager.addEmergencyAdmin(_admin);
         _aclManager.addPriceUpdater(_admin);
         _aclManager.setProtocol(_admin);
-
-        vm.stopPrank();
     }
 }

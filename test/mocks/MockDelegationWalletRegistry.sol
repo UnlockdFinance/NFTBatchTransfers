@@ -15,18 +15,15 @@ contract MockDelegationWalletRegistry {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     ////////////////////////////////////////////
-    //  Errors
-    ////////////////////////////////////////////
-    error DelegationWalletRegistry__setFactory_invalidAddress();
-    error DelegationWalletRegistry__setWallet_invalidWalletAddress();
-    error DelegationWalletRegistry__setWallet_invalidOwnerAddress();
-
-    ////////////////////////////////////////////
     //  Structs
     ////////////////////////////////////////////
     struct Wallet {
         address wallet;
         address owner;
+        address guard;
+        address guardOwner;
+        address delegationOwner;
+        address protocolOwner;
     }
 
     ////////////////////////////////////////////
@@ -54,15 +51,21 @@ contract MockDelegationWalletRegistry {
      * @notice Sets a new deployed Wallet.
      * @param _wallet - The address of the DelegationWallet's Safe component.
      * @param _owner - The address of the DelegationWallet's owner component.
+     * @param _guard - The address of the DelegationWallet DelegationGuard component.
+     * @param _guardOwner - The address of the DelegationWallet DelegationGuard component.
+     * @param _delegationOwner - The address of the DelegationWallet's DelegationOwner component.
+     * @param _protocolOwner - The address of the protocol Owner component
      */
     function setWallet(
         address _wallet,
-        address _owner
+        address _owner,
+        address _guard,
+        address _guardOwner,
+        address _delegationOwner,
+        address _protocolOwner
     ) external {
-        if (_wallet == address(0)) revert DelegationWalletRegistry__setWallet_invalidWalletAddress();
-        if (_owner == address(0)) revert DelegationWalletRegistry__setWallet_invalidOwnerAddress();
         
-        wallets[_wallet] = Wallet(_wallet, _owner);
+        wallets[_wallet] = Wallet(_wallet, _owner, _guard, _guardOwner, _delegationOwner, _protocolOwner);
 
         walletsByOwner[_owner].add(_wallet);
     }

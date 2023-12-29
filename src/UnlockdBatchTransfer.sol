@@ -27,7 +27,7 @@ contract UnlockdBatchTransfer {
     error Fallback();
     error NotProtocolOwner();
     error AddressZero();
-    error ToNotSafeOwner();
+    error NotSafeOwner();
 
     /*//////////////////////////////////////////////////////////////
                             VARIABLES
@@ -105,7 +105,7 @@ contract UnlockdBatchTransfer {
         address to
     ) external payable {
         // Verify if the to address owner is the same as msg.sender
-        if(IDelegationWalletRegistry(_delegation).getOwnerWalletAddresses(msg.sender)[0] != to) revert ToNotSafeOwner();
+        if(IDelegationWalletRegistry(_delegation).getWallet(to).owner != msg.sender) revert NotSafeOwner();
             
         uint256 length = nftTransfers.length;
         address destination = to;
@@ -158,7 +158,7 @@ contract UnlockdBatchTransfer {
         address to
     ) external payable {
         // Verify if the to address owner is the same as msg.sender
-        if(IDelegationWalletRegistry(_delegation).getOwnerWalletAddresses(msg.sender)[0] != to) revert ToNotSafeOwner();
+        if(IDelegationWalletRegistry(_delegation).getWallet(to).owner != msg.sender) revert NotSafeOwner();
         
         uint256 length = nftTransfers.length;
         bool success;
