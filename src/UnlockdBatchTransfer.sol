@@ -120,7 +120,7 @@ contract UnlockdBatchTransfer {
             to = destination;
 
             if(wrappedContract != address(0)) {
-                data = abi.encode(to);
+                data = abi.encode(destination);
                 to = wrappedContract;
             }
 
@@ -174,7 +174,7 @@ contract UnlockdBatchTransfer {
             to = destination;
             
             if(wrappedContract != address(0)) {
-                data = abi.encode(to);
+                data = abi.encode(destination);
                 to = wrappedContract;
             }
             
