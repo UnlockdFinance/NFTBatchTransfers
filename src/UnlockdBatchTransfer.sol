@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import {ICryptoPunksMarket} from "../src/interfaces/ICryptoPunksMarket.sol";
 import {IUSablierLockupLinear} from "../src/interfaces/IUSablierLockupLinear.sol";
 import {IACLManager} from '../src/interfaces/IACLManager.sol';
-
+import {IDelegationWalletRegistry} from '../src/interfaces/IDelegationWalletRegistry.sol';
 /**
  * @title UnlockdBatchTransfer
  * @dev This is a public contract in order to allow batch transfers of NFTs,
@@ -26,6 +26,7 @@ contract UnlockdBatchTransfer {
     error Fallback();
     error NotProtocolOwner();
     error AddressZero();
+    error ToNotSafeOwner();
 
     /*//////////////////////////////////////////////////////////////
                             VARIABLES
@@ -34,6 +35,8 @@ contract UnlockdBatchTransfer {
     address public immutable _punkContract;
     // Immutable address for the Unlockd ACLManager contract. This is set at deployment and cannot be altered afterwards.
     address public immutable _aclManager;
+    // Immutable address for the DelegationWalletRegistry contract. This is set at deployment and cannot be altered afterwards.
+    address public immutable _delegation;
 
     // Mapping to keep track of which ERC721 contracts needs to be wrapped. 
     mapping(address => address) public toBeWrapped;
@@ -69,9 +72,10 @@ contract UnlockdBatchTransfer {
      * @param punkContract The address of the CryptoPunks contract.
      * @param aclManager The address of the ACLManager contract.
      */
-    constructor(address punkContract, address aclManager) {
+    constructor(address punkContract, address aclManager, address delegation) {
         _punkContract = punkContract;
         _aclManager = aclManager;
+        _delegation = delegation;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -99,6 +103,8 @@ contract UnlockdBatchTransfer {
         NftTransfer[] calldata nftTransfers,
         address to
     ) external payable {
+        if(IDelegationWalletRegistry(_delegation).getWallet(to).owner != to) revert ToNotSafeOwner();
+            
         uint256 length = nftTransfers.length;
         address destination = to;
 
@@ -149,6 +155,8 @@ contract UnlockdBatchTransfer {
         NftTransfer[] calldata nftTransfers,
         address to
     ) external payable {
+        if(IDelegationWalletRegistry(_delegation).getWallet(to).owner != to) revert ToNotSafeOwner();
+        
         uint256 length = nftTransfers.length;
         bool success;
         address destination = to;
