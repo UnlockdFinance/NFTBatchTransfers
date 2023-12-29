@@ -34,11 +34,6 @@ contract UnlockdBatchTransferTest is Test {
     uint256 public _adminPK = 0xC0C00DEAD;
     address internal _admin = vm.addr(_adminPK);
 
-    struct Wallet {
-        address wallet;
-        address owner;
-    }
-
     function setUp() public {
         vm.startPrank(_admin);
         _mfers = new MockERC721("MFERS", "MFERS");
