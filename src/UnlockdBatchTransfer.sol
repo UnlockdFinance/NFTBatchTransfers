@@ -5,6 +5,9 @@ import {ICryptoPunksMarket} from "../src/interfaces/ICryptoPunksMarket.sol";
 import {IUSablierLockupLinear} from "../src/interfaces/IUSablierLockupLinear.sol";
 import {IACLManager} from '../src/interfaces/IACLManager.sol';
 import {IDelegationWalletRegistry} from '../src/interfaces/IDelegationWalletRegistry.sol';
+
+import {console} from 'forge-std/console.sol';
+
 /**
  * @title UnlockdBatchTransfer
  * @dev This is a public contract in order to allow batch transfers of NFTs,
@@ -103,7 +106,8 @@ contract UnlockdBatchTransfer {
         NftTransfer[] calldata nftTransfers,
         address to
     ) external payable {
-        if(IDelegationWalletRegistry(_delegation).getWallet(to).owner != to) revert ToNotSafeOwner();
+        // Verify if the to address owner is the same as msg.sender
+        if(IDelegationWalletRegistry(_delegation).getOwnerWalletAddresses(msg.sender)[0] != to) revert ToNotSafeOwner();
             
         uint256 length = nftTransfers.length;
         address destination = to;
@@ -155,7 +159,8 @@ contract UnlockdBatchTransfer {
         NftTransfer[] calldata nftTransfers,
         address to
     ) external payable {
-        if(IDelegationWalletRegistry(_delegation).getWallet(to).owner != to) revert ToNotSafeOwner();
+        // Verify if the to address owner is the same as msg.sender
+        if(IDelegationWalletRegistry(_delegation).getOwnerWalletAddresses(msg.sender)[0] != to) revert ToNotSafeOwner();
         
         uint256 length = nftTransfers.length;
         bool success;

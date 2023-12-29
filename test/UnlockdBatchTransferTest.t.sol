@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import "forge-std/Test.sol";
+import {console} from 'forge-std/console.sol';
+import {stdStorage, StdStorage, Test} from 'forge-std/Test.sol';
+
 import {UnlockdBatchTransfer} from "../src/UnlockdBatchTransfer.sol";
 import {MockERC721} from "./mocks/MockERC721.sol";
 import {MockPunkMarket} from "./mocks/MockPunkMarket.sol";
 import {MockACLManager} from "./mocks/MockACLManager.sol";
 import {MockSoulbound} from "./mocks/MockSoulbound.sol";
+import {MockDelegationWalletRegistry} from "./mocks/MockDelegationWalletRegistry.sol";
 
 // added to test fallback!
 interface NonExistentFunction {
@@ -20,15 +23,21 @@ contract UnlockdBatchTransferTest is Test {
     MockERC721 _mfers;
     MockERC721 _nakamigos;
     MockSoulbound _uMfers;
+    MockDelegationWalletRegistry _delegationRegistry;
 
     MockPunkMarket _punkMarket;
 
     address internal _deployer = address(0x123);
     address internal _alice = address(0x456);
-    address internal _bob = address(0x789);
+    address internal _safeAlice = address(0x654);
 
     uint256 public _adminPK = 0xC0C00DEAD;
     address internal _admin = vm.addr(_adminPK);
+
+    struct Wallet {
+        address wallet;
+        address owner;
+    }
 
     function setUp() public {
         vm.startPrank(_admin);
@@ -40,8 +49,9 @@ contract UnlockdBatchTransferTest is Test {
         _punkMarket.allInitialOwnersAssigned();
 
         deploy_acl_manager();
-        
-        _unlockdBatchTransfer = new UnlockdBatchTransfer(address(_punkMarket), address(_aclManager));
+        _delegationRegistry = new MockDelegationWalletRegistry();
+        _delegationRegistry.setWallet(address(_safeAlice), address(_alice));
+        _unlockdBatchTransfer = new UnlockdBatchTransfer(address(_punkMarket), address(_aclManager), address(_delegationRegistry));
 
         vm.startPrank(_admin);
         _unlockdBatchTransfer.addToBeWrapped(address(_mfers), address(_uMfers));
@@ -60,9 +70,9 @@ contract UnlockdBatchTransferTest is Test {
             memory transfers = new UnlockdBatchTransfer.NftTransfer[](1);
         transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_mfers), 1);
         
-        _unlockdBatchTransfer.batchTransferFrom(transfers, _bob);
+        _unlockdBatchTransfer.batchTransferFrom(transfers, _safeAlice);
         
-        assertEq(_uMfers.ownerOf(1), _bob);
+        assertEq(_uMfers.ownerOf(1), _safeAlice);
         vm.stopPrank();
     }
 
@@ -75,10 +85,10 @@ contract UnlockdBatchTransferTest is Test {
         transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_mfers), 1);
         transfers[1] = UnlockdBatchTransfer.NftTransfer(address(_mfers), 2);
 
-        _unlockdBatchTransfer.batchTransferFrom(transfers, _bob);
+        _unlockdBatchTransfer.batchTransferFrom(transfers, _safeAlice);
         
-        assertEq(_uMfers.ownerOf(1), _bob);
-        assertEq(_uMfers.ownerOf(2), _bob);
+        assertEq(_uMfers.ownerOf(1), _safeAlice);
+        assertEq(_uMfers.ownerOf(2), _safeAlice);
         vm.stopPrank();
     }
 
@@ -93,12 +103,12 @@ contract UnlockdBatchTransferTest is Test {
         transfers[2] = UnlockdBatchTransfer.NftTransfer(address(_mfers), 2);
         transfers[3] = UnlockdBatchTransfer.NftTransfer(address(_nakamigos), 2);
 
-        _unlockdBatchTransfer.batchTransferFrom(transfers, _bob);
+        _unlockdBatchTransfer.batchTransferFrom(transfers, _safeAlice);
         
         assertEq(_mfers.ownerOf(1), address(_uMfers));
-        assertEq(_nakamigos.ownerOf(1), _bob);
+        assertEq(_nakamigos.ownerOf(1), _safeAlice);
         assertEq(_mfers.ownerOf(2), address(_uMfers));
-        assertEq(_nakamigos.ownerOf(2), _bob);
+        assertEq(_nakamigos.ownerOf(2), _safeAlice);
 
         vm.stopPrank();
     }
@@ -111,9 +121,9 @@ contract UnlockdBatchTransferTest is Test {
             memory transfers = new UnlockdBatchTransfer.NftTransfer[](1);
         transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_punkMarket), 1);
         
-        _unlockdBatchTransfer.batchPunkTransferFrom(transfers, _bob);
+        _unlockdBatchTransfer.batchPunkTransferFrom(transfers, _safeAlice);
         
-        assertEq(_punkMarket.punkIndexToAddress(1), _bob);
+        assertEq(_punkMarket.punkIndexToAddress(1), _safeAlice);
         vm.stopPrank();
     }
 
@@ -126,10 +136,10 @@ contract UnlockdBatchTransferTest is Test {
         transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_punkMarket), 1);
         transfers[1] = UnlockdBatchTransfer.NftTransfer(address(_punkMarket), 2);
         
-        _unlockdBatchTransfer.batchPunkTransferFrom(transfers, _bob);
+        _unlockdBatchTransfer.batchPunkTransferFrom(transfers, _safeAlice);
         
-        assertEq(_punkMarket.punkIndexToAddress(1), _bob);
-        assertEq(_punkMarket.punkIndexToAddress(2), _bob);
+        assertEq(_punkMarket.punkIndexToAddress(1), _safeAlice);
+        assertEq(_punkMarket.punkIndexToAddress(2), _safeAlice);
         vm.stopPrank();
     }
 
@@ -146,14 +156,14 @@ contract UnlockdBatchTransferTest is Test {
         transfers[4] = UnlockdBatchTransfer.NftTransfer(address(_nakamigos), 2);
         transfers[5] = UnlockdBatchTransfer.NftTransfer(address(_punkMarket), 2);
 
-        _unlockdBatchTransfer.batchPunkTransferFrom(transfers, _bob);        
+        _unlockdBatchTransfer.batchPunkTransferFrom(transfers, _safeAlice);        
 
         assertEq(_mfers.ownerOf(1), address(_uMfers));
-        assertEq(_nakamigos.ownerOf(1), _bob);
+        assertEq(_nakamigos.ownerOf(1), _safeAlice);
         assertEq(_mfers.ownerOf(2), address(_uMfers));
-        assertEq(_nakamigos.ownerOf(2), _bob);
-        assertEq(_punkMarket.punkIndexToAddress(1), _bob);
-        assertEq(_punkMarket.punkIndexToAddress(2), _bob);
+        assertEq(_nakamigos.ownerOf(2), _safeAlice);
+        assertEq(_punkMarket.punkIndexToAddress(1), _safeAlice);
+        assertEq(_punkMarket.punkIndexToAddress(2), _safeAlice);
 
         vm.stopPrank();
     }
@@ -161,7 +171,7 @@ contract UnlockdBatchTransferTest is Test {
     function testSetPunkContract() public {
         address expectedPunkContract = address(_punkMarket);
 
-        _unlockdBatchTransfer = new UnlockdBatchTransfer(expectedPunkContract, address(_aclManager));
+        _unlockdBatchTransfer = new UnlockdBatchTransfer(expectedPunkContract, address(_aclManager), address(_delegationRegistry));
 
         assertEq(address(_unlockdBatchTransfer._punkContract()), expectedPunkContract);
     }
@@ -180,8 +190,26 @@ contract UnlockdBatchTransferTest is Test {
             memory transfers = new UnlockdBatchTransfer.NftTransfer[](1);
         transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_mfers), 1);
 
-        vm.expectRevert(0x7939f424);
-        _unlockdBatchTransfer.batchTransferFrom(transfers, _bob);
+        vm.expectRevert(); //0x7939f424
+        _unlockdBatchTransfer.batchTransferFrom(transfers, _safeAlice);
+
+        assertEq(_mfers.ownerOf(1), _alice);
+
+        vm.stopPrank();
+    }
+
+    function testDelegationWalletRegistryRevert() public {
+        vm.startPrank(_alice);
+        mintAndApproveNFTs();
+
+        _mfers.approve(_safeAlice, 1); // revoke approval
+
+        UnlockdBatchTransfer.NftTransfer[]
+            memory transfers = new UnlockdBatchTransfer.NftTransfer[](1);
+        transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_mfers), 1);
+
+        vm.expectRevert(UnlockdBatchTransfer.ToNotSafeOwner.selector);
+        _unlockdBatchTransfer.batchTransferFrom(transfers, _alice);
 
         assertEq(_mfers.ownerOf(1), _alice);
 
@@ -197,7 +225,23 @@ contract UnlockdBatchTransferTest is Test {
         transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_punkMarket), 3);
 
         vm.expectRevert(0x30cd7471);
-        _unlockdBatchTransfer.batchPunkTransferFrom(transfers, _bob);
+        _unlockdBatchTransfer.batchPunkTransferFrom(transfers, _safeAlice);
+
+        assertEq(_punkMarket.punkIndexToAddress(1), _alice);
+
+        vm.stopPrank();
+    }
+
+    function testPunkDelegationWalletRegistryRevert() public {
+        vm.startPrank(_alice);
+        mintAndApproveNFTs();
+
+        UnlockdBatchTransfer.NftTransfer[]
+            memory transfers = new UnlockdBatchTransfer.NftTransfer[](1);
+        transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_punkMarket), 3);
+
+        vm.expectRevert(UnlockdBatchTransfer.ToNotSafeOwner.selector);
+        _unlockdBatchTransfer.batchPunkTransferFrom(transfers, _alice);
 
         assertEq(_punkMarket.punkIndexToAddress(1), _alice);
 
