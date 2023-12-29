@@ -132,13 +132,12 @@ contract MockSoulbound is ERC721, IERC721Receiver {
     uint256 tokenId, 
     bytes calldata data
     ) external override returns (bytes4) {
-        if(msg.sender == address(_erc721)) {
+        if(msg.sender != address(_erc721)) revert ERC721ReceiverNotSupported();
         
-            (address unlockdWallet) = abi.decode(data, (address));
-            preMintChecks(unlockdWallet, tokenId);
-            _mint(unlockdWallet, tokenId);
-        }
-        
+        (address unlockdWallet) = abi.decode(data, (address));
+        preMintChecks(unlockdWallet, tokenId);
+        _mint(unlockdWallet, tokenId);
+
         return this.onERC721Received.selector;
     }
 
