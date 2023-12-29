@@ -19,6 +19,7 @@ contract MockSoulbound is ERC721, IERC721Receiver {
     error ApproveNotSupported();
     error SetApprovalForAllNotSupported();
     error BurnerNotApproved();
+    error ERC721ReceiverNotSupported();
 
 
     /*//////////////////////////////////////////////////////////////
@@ -71,13 +72,16 @@ contract MockSoulbound is ERC721, IERC721Receiver {
     /*//////////////////////////////////////////////////////////////
                             ERC721
     //////////////////////////////////////////////////////////////*/
+
+    function preMintChecks(address, uint256) public virtual {}
+
     /**
      * @notice Mints a new token.
      * @dev Mints a new ERC721 token representing the underlying asset and stores the real asset in this contract.
      * @param to The address to mint the token to.
      * @param tokenId The token ID to mint.
      */
-    function _baseMint(address to, uint256 tokenId) external {
+    function baseMint(address to, uint256 tokenId) public {
         _erc721.safeTransferFrom(msg.sender, address(this), tokenId);
         _mint(to, tokenId);
 
@@ -89,7 +93,7 @@ contract MockSoulbound is ERC721, IERC721Receiver {
      * @dev Burns an ERC721 token and transfers the underlying asset to its owner.
      * @param tokenId The token ID to burn.
      */
-    function _baseBurn(uint256 tokenId, address to) external {
+    function baseBurn(uint256 tokenId, address to) public {
         if(!_isApprovedOrOwner(_msgSender(), tokenId)) revert BurnerNotApproved();
         
         _burn(tokenId);
@@ -125,9 +129,16 @@ contract MockSoulbound is ERC721, IERC721Receiver {
     function onERC721Received(
     address, 
     address, 
-    uint256, 
-    bytes calldata
+    uint256 tokenId, 
+    bytes calldata data
     ) external override returns (bytes4) {
+        if(msg.sender == address(_erc721)) {
+        
+            (address unlockdWallet) = abi.decode(data, (address));
+            preMintChecks(unlockdWallet, tokenId);
+            _mint(unlockdWallet, tokenId);
+        }
+        
         return this.onERC721Received.selector;
     }
 

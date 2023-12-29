@@ -13,7 +13,7 @@ interface NonExistentFunction {
     function nonExistent() external payable;
 }
 
-contract _unlockdBatchTransferTest is Test {
+contract UnlockdBatchTransferTest is Test {
     UnlockdBatchTransfer _unlockdBatchTransfer;
 
     MockACLManager _aclManager;
@@ -41,9 +41,11 @@ contract _unlockdBatchTransferTest is Test {
 
         deploy_acl_manager();
         
-        MockERC721(_mfers).setApprovalForAll(address(_unlockdBatchTransfer), true);
+        vm.startPrank(_alice);
         _unlockdBatchTransfer = new UnlockdBatchTransfer(address(_punkMarket), address(_aclManager));
-        //_unlockdBatchTransfer.addToBeWrapped(address(_mfers), address(_uMfers));
+        MockERC721(_mfers).setApprovalForAll(address(_unlockdBatchTransfer), true);
+        vm.startPrank(_admin);
+        _unlockdBatchTransfer.addToBeWrapped(address(_mfers), address(_uMfers));
         vm.stopPrank();
     }
 
@@ -61,7 +63,7 @@ contract _unlockdBatchTransferTest is Test {
         
         _unlockdBatchTransfer.batchTransferFrom(transfers, _bob);
         
-        assertEq(_mfers.ownerOf(1), _bob);
+        assertEq(_uMfers.ownerOf(1), _bob);
         vm.stopPrank();
     }
 
@@ -76,8 +78,8 @@ contract _unlockdBatchTransferTest is Test {
 
         _unlockdBatchTransfer.batchTransferFrom(transfers, _bob);
         
-        assertEq(_mfers.ownerOf(1), _bob);
-        assertEq(_mfers.ownerOf(2), _bob);
+        assertEq(_uMfers.ownerOf(1), _bob);
+        assertEq(_uMfers.ownerOf(2), _bob);
         vm.stopPrank();
     }
 
@@ -94,9 +96,9 @@ contract _unlockdBatchTransferTest is Test {
 
         _unlockdBatchTransfer.batchTransferFrom(transfers, _bob);
         
-        assertEq(_mfers.ownerOf(1), _bob);
+        assertEq(_mfers.ownerOf(1), address(_uMfers));
         assertEq(_nakamigos.ownerOf(1), _bob);
-        assertEq(_mfers.ownerOf(2), _bob);
+        assertEq(_mfers.ownerOf(2), address(_uMfers));
         assertEq(_nakamigos.ownerOf(2), _bob);
 
         vm.stopPrank();
@@ -147,9 +149,9 @@ contract _unlockdBatchTransferTest is Test {
 
         _unlockdBatchTransfer.batchPunkTransferFrom(transfers, _bob);        
 
-        assertEq(_mfers.ownerOf(1), _bob);
+        assertEq(_mfers.ownerOf(1), address(_uMfers));
         assertEq(_nakamigos.ownerOf(1), _bob);
-        assertEq(_mfers.ownerOf(2), _bob);
+        assertEq(_mfers.ownerOf(2), address(_uMfers));
         assertEq(_nakamigos.ownerOf(2), _bob);
         assertEq(_punkMarket.punkIndexToAddress(1), _bob);
         assertEq(_punkMarket.punkIndexToAddress(2), _bob);
@@ -173,16 +175,16 @@ contract _unlockdBatchTransferTest is Test {
         vm.startPrank(_alice);
         mintAndApproveNFTs();
 
-        _mfers.approve(address(0), 1); // revoke approval
+        _nakamigos.approve(address(0), 1); // revoke approval
 
         UnlockdBatchTransfer.NftTransfer[]
             memory transfers = new UnlockdBatchTransfer.NftTransfer[](1);
-        transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_mfers), 1);
+        transfers[0] = UnlockdBatchTransfer.NftTransfer(address(_nakamigos), 1);
 
         vm.expectRevert(0x7939f424);
         _unlockdBatchTransfer.batchTransferFrom(transfers, _bob);
 
-        assertEq(_mfers.ownerOf(1), _alice);
+        assertEq(_nakamigos.ownerOf(1), _alice);
 
         vm.stopPrank();
     }
@@ -246,6 +248,7 @@ contract _unlockdBatchTransferTest is Test {
         _aclManager.addAuctionAdmin(_admin);
         _aclManager.addEmergencyAdmin(_admin);
         _aclManager.addPriceUpdater(_admin);
+        _aclManager.setProtocol(_admin);
 
         vm.stopPrank();
     }

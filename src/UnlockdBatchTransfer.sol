@@ -100,24 +100,30 @@ contract UnlockdBatchTransfer {
         address to
     ) external payable {
         uint256 length = nftTransfers.length;
+        address destination = to;
 
         // Iterate through each NFT in the array to facilitate the transfer.
         for (uint i = 0; i < length;) {
             address contractAddress = nftTransfers[i].contractAddress;
             uint256 tokenId = nftTransfers[i].tokenId;
+
             address wrappedContract = isToBeWrapped(contractAddress);
+            bytes memory data = abi.encode('');
+            to = destination;
 
             if(wrappedContract != address(0)) {
+                data = abi.encode(to);
                 to = wrappedContract;
             }
 
             // Dynamically call the `transferFrom` function on the target ERC721 contract.
             (bool success, ) = contractAddress.call(
                 abi.encodeWithSignature(
-                    "transferFrom(address,address,uint256)",
+                    "safeTransferFrom(address,address,uint256,bytes)",
                     msg.sender,
                     to,
-                    tokenId
+                    tokenId,
+                    data
                 )
             );
 
@@ -145,6 +151,7 @@ contract UnlockdBatchTransfer {
     ) external payable {
         uint256 length = nftTransfers.length;
         bool success;
+        address destination = to;
 
         // Process batch transfers, differentiate between CryptoPunks and standard ERC721 tokens.
         for (uint i = 0; i < length;) {
@@ -152,20 +159,24 @@ contract UnlockdBatchTransfer {
             uint256 tokenId = nftTransfers[i].tokenId;
 
             address wrappedContract = isToBeWrapped(contractAddr);
-
+            bytes memory data = abi.encode('');
+            to = destination;
+            
             if(wrappedContract != address(0)) {
+                data = abi.encode(to);
                 to = wrappedContract;
             }
-
+            
             // Check if the NFT is a CryptoPunk.
             if (contractAddr != _punkContract) {
                 // If it's not a CryptoPunk, use the standard ERC721 `transferFrom` function.
                 (success, ) = contractAddr.call(
                     abi.encodeWithSignature(
-                        "transferFrom(address,address,uint256)",
+                        "safeTransferFrom(address,address,uint256,bytes)",
                         msg.sender,
                         to,
-                        tokenId
+                        tokenId,
+                        data
                     )
                 );
             } 
