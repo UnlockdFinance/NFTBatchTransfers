@@ -5,8 +5,6 @@ import {ICryptoPunksMarket} from "../src/interfaces/ICryptoPunksMarket.sol";
 import {IUSablierLockupLinear} from "../src/interfaces/IUSablierLockupLinear.sol";
 import {IACLManager} from '../src/interfaces/IACLManager.sol';
 
-import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-
 /**
  * @title UnlockdBatchTransfer
  * @dev This is a public contract in order to allow batch transfers of NFTs,
@@ -15,7 +13,7 @@ import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Recei
  * It is also designed to work with the Unlockd protocol, and the USablierLockupLinear contract.
  * We will be adding the functionality to add wrappers to the contract.
  */
-contract UnlockdBatchTransfer is IERC721Receiver {
+contract UnlockdBatchTransfer {
 
     /*//////////////////////////////////////////////////////////////
                              ERRORS
@@ -107,6 +105,11 @@ contract UnlockdBatchTransfer is IERC721Receiver {
         for (uint i = 0; i < length;) {
             address contractAddress = nftTransfers[i].contractAddress;
             uint256 tokenId = nftTransfers[i].tokenId;
+            address wrappedContract = isToBeWrapped(contractAddress);
+
+            if(wrappedContract != address(0)) {
+                to = wrappedContract;
+            }
 
             // Dynamically call the `transferFrom` function on the target ERC721 contract.
             (bool success, ) = contractAddress.call(
@@ -147,6 +150,12 @@ contract UnlockdBatchTransfer is IERC721Receiver {
         for (uint i = 0; i < length;) {
             address contractAddr = nftTransfers[i].contractAddress;
             uint256 tokenId = nftTransfers[i].tokenId;
+
+            address wrappedContract = isToBeWrapped(contractAddr);
+
+            if(wrappedContract != address(0)) {
+                to = wrappedContract;
+            }
 
             // Check if the NFT is a CryptoPunk.
             if (contractAddr != _punkContract) {
@@ -230,22 +239,5 @@ contract UnlockdBatchTransfer is IERC721Receiver {
         // verify address(0) or let it revert.
         address wrapContract = toBeWrapped[asset];
         IUSablierLockupLinear(wrapContract).mint(to, tokenId); 
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                          IERC721RECEIVER
-    //////////////////////////////////////////////////////////////*/
-    function onERC721Received(
-        address, // operator,
-        address, // from
-        uint256, // tokenId,
-        bytes calldata data
-    ) external override returns (bytes4) {
-        (address asset, uint256 tokenId, address to) = abi.decode(data, (address, uint256, address));
-        if(isToBeWrapped(asset) != address(0)) {
-            _wrapNFT(asset, tokenId, to);
-        }
-        
-        return this.onERC721Received.selector;
     }
 }

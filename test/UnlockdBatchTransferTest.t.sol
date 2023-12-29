@@ -43,7 +43,7 @@ contract _unlockdBatchTransferTest is Test {
         
         MockERC721(_mfers).setApprovalForAll(address(_unlockdBatchTransfer), true);
         _unlockdBatchTransfer = new UnlockdBatchTransfer(address(_punkMarket), address(_aclManager));
-        _unlockdBatchTransfer.addToBeWrapped(address(_mfers), address(_uMfers));
+        //_unlockdBatchTransfer.addToBeWrapped(address(_mfers), address(_uMfers));
         vm.stopPrank();
     }
 
