@@ -6,8 +6,6 @@ import {IUSablierLockupLinear} from "../src/interfaces/IUSablierLockupLinear.sol
 import {IACLManager} from '../src/interfaces/IACLManager.sol';
 import {IDelegationWalletRegistry} from '../src/interfaces/IDelegationWalletRegistry.sol';
 
-import {console} from 'forge-std/console.sol';
-
 /**
  * @title UnlockdBatchTransfer
  * @dev This is a public contract in order to allow batch transfers of NFTs,
