@@ -162,6 +162,7 @@ contract UnlockdBatchTransfer {
         
         uint256 length = nftTransfers.length;
         bool success;
+        // stores the to address that will be used for the transfer and updated if theres a need to wrap the NFT.
         address destination = to;
 
         // Process batch transfers, differentiate between CryptoPunks and standard ERC721 tokens.
@@ -257,6 +258,12 @@ contract UnlockdBatchTransfer {
         return toBeWrapped[asset];
     }
 
+    /**
+     * @notice Wraps an NFT.
+     * @param asset the address of the asset to be wrapped
+     * @param tokenId the id of the token to be wrapped
+     * @param to the address of the recipient
+     */
     function _wrapNFT(address asset, uint256 tokenId, address to) internal {
         // verify address(0) or let it revert.
         address wrapContract = toBeWrapped[asset];
